@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from agentPackage.state import State
 from agentPackage.action import Action
+from agentPackage.goal import Goal
 
 
 class CityState(State):
-    name: str
-
     def __init__(self, name: int):
         self.name = name
 
@@ -24,9 +23,6 @@ class CityState(State):
 
 
 class MoveAction(Action):
-    from_city: CityState
-    to_city: CityState
-
     def __init__(self, from_city: CityState, to_city: CityState):
         self.from_city = from_city
         self.to_city = to_city
@@ -181,9 +177,33 @@ costMatrix = {
     },
 }
 
+# heuristica (distanza in linea d'aria) [per semplicità, solo rispetto a Bucharest]
+sld = {
+    "Arad": 366,
+    "Zerind": 374,
+    "Oradea": 380,
+    "Sibiu": 253,
+    "Timisoara": 329,
+    "Lugoj": 244,
+    "Mehadia": 241,
+    "Drobeta": 242,
+    "Craiova": 160,
+    "Riminicu Vilcea": 193,
+    "Fagaras": 176,
+    "Pitesti": 100,
+    "Bucharest": 0,
+    "Giurgiu": 77,
+    "Urziceni": 80,
+    "Vaslui": 199,
+    "Iasi": 226,
+    "Neamt": 234,
+    "Hirsova": 151,
+    "Eforie": 161,
+}
+
 # Creazione delle azioni possibili
 actions = []
-actionsPerState = {}
+actionsPerStateTable = {}
 
 for state in states:
     city_name = state.name
@@ -196,13 +216,35 @@ for state in states:
             actions.append(action)
             actions_from_city.append(action)
 
-    actionsPerState[state] = actions_from_city
+    actionsPerStateTable[state] = actions_from_city
 
-# Modello di transizione: associa (stato, azione) al nuovo stato
-transitionModel = {(action.from_city, action): action.to_city for action in actions}
+
+def actionsPerState(state: CityState) -> list[MoveAction]:
+    return actionsPerStateTable[state]
+
+
+def transitionModel(state: CityState, action: MoveAction) -> CityState:
+    if state != action.from_city:
+        raise ValueError("Inconsistent arguments")
+    return action.to_city
+
 
 # Funzione di costo del percorso
 def pathCostFunction(state: CityState, action: MoveAction) -> int:
-    return costMatrix[state.name].get(
-        action.to_city.name, INF
-    )
+    return costMatrix[state.name].get(action.to_city.name, INF)
+
+
+def heuristicDistance(start: CityState, stop: CityState) -> int:
+    if stop != "Bucharest":
+        raise NotImplementedError(
+            "I can't calculate yet an heuristic distance on a destination different from Bucharest."
+        )
+    return sld[start.name]
+
+
+def heuristicDistFunction(state: CityState, goal: Goal) -> int:
+    if goal.context is None or not isinstance(goal.context, CityState):
+        raise NotImplementedError(
+            f"I don't know how to calculate this distance yet, because the goal is not set as a single {CityState.__name__} destination"
+        )
+    return heuristicDistance(state, goal.context)

@@ -4,41 +4,71 @@ from agentPackage.agent import Agent
 from agentPackage.environment import Environment
 from agentPackage.sensor import Sensor
 from agentPackage.agent import Agent
-from agentPackage.problemSolving import ProblemSolving
+from agentPackage.problemSolving import ProblemSolving, SearchAlgorithmType
 
 from agentPackage.customTypes import (
-    ActionTableType,
+    ActionsPerStateType,
     TransitionModelType,
     PathFunctionType,
 )
 
-import problemFormulations.googleMaps as maps
-from problemFormulations.googleMaps import (
-    CityState,
+import problemFormulations.nPuzzle as puzzle
+from problemFormulations.nPuzzle import (
+    NPuzzleState,
     MoveAction,
     transitionModel,
-    actions,
-    states,
     actionsPerState,
     pathCostFunction,
+    heuristicDistFunction,
+    manhattanDistance,
+    linearConflictDistance,
+    generateRandomState,
+    generateSortedState,
 )
 
-# Definizione del problema
-# initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
-# goalState = s((s.CLEAN << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
-initialState = CityState("Arad")
-# goalState = CityState("Urziceni")
-goal = Goal(lambda state: len(state.name) > 7, lambda: 'Una qualunque città con nome più lungo di 7 lettere')
+from threading import Thread, Event
+from collections.abc import Callable
 
-problem = Problem(
-    states,
-    initialState,
-    actions,
-    actionsPerState,
-    transitionModel,
-    goal,
-    pathCostFunction,
-)
+
+def capitalize_first_letter(string: str) -> str:
+    if string is None or len(string) == 0:
+        return string
+    if len(string) == 1:
+        return string.upper()
+
+    return string[0].upper() + string[1::]
+
+
+# Funzione per eseguire l'algoritmo di ricerca con un limite di tempo
+def runWithTimeout(
+    searchAlgorithm: SearchAlgorithmType,
+    problem,
+    timeout: float,
+    log: Callable[[str], None],
+):
+    solution = None
+    stopEvent = Event()
+
+    def search():
+        nonlocal solution
+        try:
+            solution = searchAlgorithm(problem, stopEvent)
+        except Exception as e:
+            log(f"Algorithm {name} did not succeed: {e}")
+
+    searchThread = Thread(target=search)
+    searchThread.start()
+
+    searchThread.join(timeout)
+
+    if searchThread.is_alive():
+        log(f"Tempo scaduto dopo {timeout} secondi!")
+        stopEvent.set()
+        return ProblemSolving.CUTOFF
+
+    searchThread.join()
+
+    return solution
 
 
 def reset():
@@ -50,27 +80,77 @@ def reset():
     solver = ProblemSolving(agent, problem)
 
 
+# Definizione del problema
+# initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
+# goalState = s((s.CLEAN << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
+DIMENSION = 3
+initialState = generateRandomState(DIMENSION)
+goalState = generateSortedState(DIMENSION)
+goalMap = goalState.createGoalMap()
+goal = Goal(lambda state: state == goalState, lambda: f"{goalState}", context=goalState)
+
+problem = Problem(
+    initialState,
+    actionsPerState,
+    transitionModel,
+    goal,
+    pathCostFunction,
+    heuristicDistFunction=lambda state, goal: heuristicDistFunction(
+        state, goal, goalMap, manhattanDistance
+    ),
+)
+
+
 # risolvi il problema
 reset()
 
 print(f"-------------------------- PROBLEMA --------------------------")
 print(problem)
 
-print("BreadthFirstSearch:")
-solver.simpleProblemSolvingAgent(ProblemSolving.breadthFirstSearch)
+algorithmsToTry = [
+    # "breadthFirstSearch",
+    # "depthFirstSearch",
+    # "depthFirstSearchRecursive",
+    # "iterativeDeepeningSearch",
+    "uniformSearch",
+    "greedySearch",
+    "aStarSearch",
+]
 
-reset()
-print("\nUniformSearch:")
-solver.simpleProblemSolvingAgent(ProblemSolving.uniformSearch)
+with open("output.txt", mode="w") as logger:
 
-reset()
-print("\nDepthFirstSearch:")
-solver.simpleProblemSolvingAgent(ProblemSolving.depthFirstSearch)
+    def log(message: str, logToStdout: bool = True):
+        if logToStdout:
+            print(message)
+        logger.write(f"{message}\n")
 
-reset()
-print("\nDepthFirstSearchRecursive:")
-solver.simpleProblemSolvingAgent(ProblemSolving.depthFirstSearchRecursive)
+    for algorithm in algorithmsToTry:
+        name = capitalize_first_letter(algorithm)
+        log(f"{name}:")
+        searchAlgorithm: SearchAlgorithmType = getattr(ProblemSolving, algorithm)
+        try:
+            from timeit import default_timer as timer
 
-reset()
-print("\nIterativeDeepeningSearch:")
-solver.simpleProblemSolvingAgent(ProblemSolving.iterativeDeepeningSearch)
+            start = timer()
+            solution = runWithTimeout(searchAlgorithm, problem, timeout=60, log=log)
+            end = timer()
+
+            log(f"Search algorithm time: {end - start}")
+
+            if solution is ProblemSolving.CUTOFF:
+                log(
+                    "Nessuna soluzione trovata (non e' stato visitato tutto l'albero degli stati a causa di timeout o errori interni)"
+                )
+            elif solution is ProblemSolving.NO_SOLUTIONS:
+                log("Non ci sono soluzioni")
+            else:
+                actions, cost = solution
+                log(f"Soluzione trovata (Costo {cost})")
+                for i in range(len(actions)):
+                    log(f"{f'{i+1}.':<5}\t{actions[i]}", logToStdout=False)
+
+            log("-----------------------------------")
+        except Exception as e:
+            log(f"Algorithm {name} did not succeed: {e}")
+        reset()
+        log("")

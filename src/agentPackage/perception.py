@@ -1,8 +1,7 @@
 from .state import State
 
+
 class Perception:
-    state: State
-    
     def __init__(self, state: State):
         self.state = state
 
