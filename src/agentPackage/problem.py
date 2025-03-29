@@ -1,5 +1,6 @@
+from .task import Task
+
 from .goal import Goal
-from .action import Action
 from .state import State
 
 from .customTypes import (
@@ -11,7 +12,7 @@ from .customTypes import (
 )
 
 
-class Problem:
+class Problem(Task):
 
     def __init__(
         self,
@@ -30,28 +31,12 @@ class Problem:
         pathCostFunction: PathFunctionType                      # funzione del costo di un percorso, dato stato e azione
         heuristicDistFunction: HeuristicStateOnlyFunctionType   # funzione heuristica della distanza di uno stato dalla/e destinazione/i
         """
-        self.initialState = initialState
-        self.actionsPerState = actionsPerState
-        self.transitionModel = transitionModel
+        super().__init__(initialState, actionsPerState, transitionModel)
         self.goal = goal
         self.pathCostFunction = pathCostFunction
         self.heuristicDistFunction = lambda state: heuristicDistFunction(
             state, self.goal
         )
-
-    def getActionsFromState(self, state: State) -> list[Action]:
-        """
-        ACTIONS\n
-        Restituisce l'insieme delle azioni possibili da un certo stato
-        """
-        return self.actionsPerState(state)
-
-    def getNextState(self, state: State, action: Action) -> State:
-        """
-        RESULT\n
-        Restituisce lo stato ottenuto eseguendo un'azione a partire da un certo stato
-        """
-        return self.transitionModel(state, action)
 
     def isGoalAchieved(self, state: State) -> bool:
         return self.goal.isGoalAchieved(state)
