@@ -235,7 +235,7 @@ def pathCostFunction(state: CityState, action: MoveAction) -> int:
 
 
 def heuristicDistance(start: CityState, stop: CityState) -> int:
-    if stop != "Bucharest":
+    if stop.name != "Bucharest":
         raise NotImplementedError(
             "I can't calculate yet an heuristic distance on a destination different from Bucharest."
         )

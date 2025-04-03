@@ -21,10 +21,22 @@ from problemFormulations.nPuzzle import (
     pathCostFunction,
     heuristicDistFunction,
     manhattanDistance,
-    linearConflictDistance,
     generateRandomState,
     generateSortedState,
 )
+
+# import problemFormulations.googleMaps as maps
+# from problemFormulations.googleMaps import (
+#     CityState,
+#     MoveAction,
+#     transitionModel,
+#     actionsPerState,
+#     pathCostFunction,
+#     heuristicDistFunction,
+#     # manhattanDistance,
+#     # generateRandomState,
+#     # generateSortedState,
+# )
 
 from threading import Thread, Event
 from collections.abc import Callable
@@ -83,10 +95,14 @@ def reset():
 # Definizione del problema
 # initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
 # goalState = s((s.CLEAN << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
+
 DIMENSION = 3
-initialState = generateRandomState(DIMENSION)
+initialState = NPuzzleState((3, 4, 1, 5, 7, 8, 0, 6, 2), 3)
 goalState = generateSortedState(DIMENSION)
 goalMap = goalState.createGoalMap()
+
+# initialState = CityState('Arad')
+# goalState = CityState('Bucharest')
 goal = Goal(lambda state: state == goalState, lambda: f"{goalState}", context=goalState)
 
 problem = Problem(
@@ -96,7 +112,8 @@ problem = Problem(
     goal,
     pathCostFunction,
     heuristicDistFunction=lambda state, goal: heuristicDistFunction(
-        state, goal, goalMap, manhattanDistance
+        state, goal,
+        goalMap, manhattanDistance
     ),
 )
 
@@ -132,7 +149,7 @@ with open("output.txt", mode="w") as logger:
             from timeit import default_timer as timer
 
             start = timer()
-            solution = runWithTimeout(searchAlgorithm, problem, timeout=60, log=log)
+            solution = runWithTimeout(searchAlgorithm, problem, timeout=10, log=log)
             end = timer()
 
             log(f"Search algorithm time: {end - start}")

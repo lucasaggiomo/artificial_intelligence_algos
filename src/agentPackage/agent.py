@@ -2,6 +2,7 @@ from .perception import Perception
 from .sensor import Sensor
 from .environment import Environment
 from .action import Action
+from .state import State
 
 
 class Agent:
@@ -12,6 +13,7 @@ class Agent:
     def percept(self) -> Perception:
         return self.sensor.getPerception(self.environment)
 
-    def executeAction(self, action: Action):
-        new_state = self.environment.evolveState(action)
+    def executeAction(self, action: Action) -> State:
+        """Esegue l'azione sull'ambiente e restituisce lo stato successivo dell'ambiente"""
+        return self.environment.evolveState(action)
         # self.environment.render()
