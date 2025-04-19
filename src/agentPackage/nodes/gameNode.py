@@ -16,11 +16,11 @@ class GameNode(Node[Game]):
         utility: float,
     ):
         """
-        parent: Node                        # il nodo padre (None se è la radice)
-        children: list[Node]                # i nodi figli associati
-        state: State                        # lo stato associato al nodo
-        action: Action                      # l'azione che ha portato a generare il nodo
-        utility: float                      # valore di utilità del nodo (stato)
+        **parent**: *Node*                        - il nodo padre (None se è la radice)
+        **children**: *list[Node]*                - i nodi figli associati
+        **state**: *State*                        - lo stato associato al nodo
+        **action**: *Action*                      - l'azione che ha portato a generare il nodo
+        **utility**: *float*                      - valore di utilità del nodo (stato)
         """
         super().__init__(parent, state, action)
         self.utility = utility

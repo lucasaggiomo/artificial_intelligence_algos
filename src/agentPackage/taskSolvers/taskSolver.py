@@ -12,7 +12,7 @@ T = TypeVar("T", bound=Task, covariant=True)
 # useless for now
 class TaskSolver(Generic[T], ABC):
     @abstractmethod
-    def __init__(self, agents: list[Agent], task: Task):
+    def __init__(self, agents: list[Agent], task: T):
         self.agents = agents
         self.task = task
 

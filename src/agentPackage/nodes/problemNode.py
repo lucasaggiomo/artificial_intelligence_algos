@@ -16,12 +16,12 @@ class ProblemNode(Node[Problem]):
         heuristicDist: float,
     ):
         """
-        parent: Node                        # il nodo padre (None se è la radice)
-        children: list[Node]                # i nodi figli associati
-        state: State                        # lo stato associato al nodo
-        action: Action                      # l'azione che ha portato a generare il nodo
-        pathCost: float                       # costo per raggiungere il nodo a partire dalla radice
-        heuristicDist: float                   # distanza heuristica dalla/e destinazione/i
+        **parent**: *Node*                        - il nodo padre (None se è la radice)
+        **children**: *list[Node]*                - i nodi figli associati
+        **state**: *State*                        - lo stato associato al nodo
+        **action**: *Action*                      - l'azione che ha portato a generare il nodo
+        **pathCost**: *float*                       - costo per raggiungere il nodo a partire dalla radice
+        **heuristicDist**: *float*                   - distanza heuristica dalla/e destinazione/i
         """
         super().__init__(parent, state, action)
         self.pathCost = pathCost
