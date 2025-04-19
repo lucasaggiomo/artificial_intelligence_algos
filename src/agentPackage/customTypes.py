@@ -1,8 +1,8 @@
 from collections.abc import Callable
 
-from .action import Action
-from .state import State
-from .goal import Goal
+from src.agentPackage.action import Action
+from src.agentPackage.state import State
+from src.agentPackage.goal import Goal
 
 type PathFunctionType = Callable[[State, Action], float]
 type HeuristicFunctionType = Callable[[State, Goal], float]

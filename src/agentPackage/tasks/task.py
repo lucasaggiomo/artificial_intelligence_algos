@@ -1,26 +1,31 @@
-from .action import Action
-from .state import State
+from abc import ABC, abstractmethod
 
-from .customTypes import (
+from src.agentPackage.action import Action
+from src.agentPackage.state import State
+from src.agentPackage.environment import Environment
+from src.agentPackage.customTypes import (
     ActionsPerStateType,
     TransitionModelType,
 )
 
 
-class Task:
-
+class Task(ABC):
+    @abstractmethod
     def __init__(
         self,
         initialState: State,
+        environment: Environment,
         actionsPerState: ActionsPerStateType,
         transitionModel: TransitionModelType,
     ):
         """
-        initialState: State                                     # stato di partenza\\
-        actionsPerState: ActionsPerStateType                    # associa ad ogni stato l'insieme delle possibili azioni\\
-        transitionModel: TransitionModelType                    # associa ad ogni azione, a partire da uno stato, lo stato successivo\\
+        **initialState**: *State*                                     - stato di partenza\\
+        **environment**: *Environment*                                - ambiente del sistema\\
+        **actionsPerState**: *ActionsPerStateType*                    - associa ad ogni stato l'insieme delle possibili azioni\\
+        **transitionModel**: *TransitionModelType*                    - associa ad ogni azione, a partire da uno stato, lo stato successivo\\
         """
         self.initialState = initialState
+        self.environment = environment
         self.actionsPerState = actionsPerState
         self.transitionModel = transitionModel
 

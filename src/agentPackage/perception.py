@@ -1,9 +1,6 @@
-from .state import State
+from src.agentPackage.state import State
 
 
-class Perception:
-    def __init__(self, state: State):
-        self.state = state
-
+class Perception(State):
     def __str__(self):
         return f"Percezione: l'agente si trova in {self.state}"

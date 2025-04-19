@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from .node import Node
+from src.agentPackage.nodes.node import Node
+from src.agentPackage.tasks.problem import Problem
+from src.agentPackage.state import State
+from src.agentPackage.action import Action
 
-from .state import State
-from .action import Action
-from .problem import Problem
 
-
-class ProblemNode(Node):
-
+class ProblemNode(Node[Problem]):
     def __init__(
         self,
         parent: ProblemNode,
@@ -45,5 +43,5 @@ class ProblemNode(Node):
         )
 
     # operators (by pathCost)
-    def comparison_value(self):
+    def comparisonValue(self):
         return self.pathCost

@@ -1,21 +1,19 @@
-from .state import State
-from .action import Action
-
-from .customTypes import TransitionModelType
+from src.agentPackage.state import State
+from src.agentPackage.action import Action
+from src.agentPackage.customTypes import TransitionModelType
 
 
 class Environment:
-
     def __init__(self, initialState: State, transitionModel: TransitionModelType):
-        self.state = initialState
+        self.currentState = initialState
         self.transitionModel = transitionModel  # associa ad ogni azione, a partire da uno stato, lo stato successivo
 
     def evolveState(self, action: Action) -> State:
-        self.state = self.transitionModel(self.state, action)
-        return self.state
+        self.currentState = self.transitionModel(self.currentState, action)
+        return self.currentState
 
     def getCurrentState(self) -> State:
-        return self.state
+        return self.currentState
 
     def render(self):
-        print(f"Ambiente attuale: l'agente si trova in\n{self.state}")
+        print(f"Ambiente attuale: l'agente si trova in\n{self.currentState}")

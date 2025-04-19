@@ -1,26 +1,25 @@
-from .state import State
-from .agent import Agent
-from .problem import Problem
+from collections import deque
+from collections.abc import Callable
+from heapq import *
+from threading import Event
 
-from .problemNode import ProblemNode
-
-from .customTypes import SolutionType
+from src.agentPackage.taskSolvers.taskSolver import TaskSolver
+from src.agentPackage.tasks.problem import Problem
+from src.agentPackage.nodes.problemNode import ProblemNode
+from src.agentPackage.state import State
+from src.agentPackage.agent import Agent
+from src.agentPackage.customTypes import SolutionType
 
 type SearchAlgorithmType = Callable[[Problem, Event], SolutionType]
 
-from collections import deque
-from collections.abc import Callable
 
-from heapq import *
-
-from threading import Event
-
-
-class ProblemSolving:
+class ProblemSolving(TaskSolver[Problem]):
     CUTOFF = None
     NO_SOLUTIONS = [None, -1]
 
     def __init__(self, agent: Agent, problem: Problem):
+        super().__init__([agent], problem)
+
         self.agent = agent
         self.problem = problem
         self.currentState = problem.initialState
@@ -58,9 +57,10 @@ class ProblemSolving:
 
         if executeSolution:
             print("Inizio l'esecuzione...")
-            self.agent.environment.render()
+            self.problem.environment.render()
             for action in actions:
-                self.currentState = self.agent.executeAction(action)
+                self.agent.executeAction(action)
+                self.currentState = self.problem.environment.getCurrentState()
 
     @staticmethod
     def backtrackSolution(node: ProblemNode) -> SolutionType:
@@ -279,9 +279,7 @@ class ProblemSolving:
         fringe: list[ProblemNode] = []
         heappush(fringe, (costFunction(node), node))
 
-        costMap: dict[State, float] = {
-            node.state: node
-        }
+        costMap: dict[State, float] = {node.state: node}
 
         explored: set[State] = set()
 
@@ -317,7 +315,6 @@ class ProblemSolving:
                     # aggiunge (o sostituisce) lo stato child.state con il nodo child nella frontiera
                     heappush(fringe, (nextCost, child))
                     costMap[child.state] = nextCost
-
 
     @staticmethod
     def uniformSearch(problem: Problem, stopEvent: Event) -> SolutionType:

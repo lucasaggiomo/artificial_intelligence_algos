@@ -1,9 +1,9 @@
 from __future__ import annotations
-from agentPackage.state import State
-from agentPackage.action import Action
-from agentPackage.goal import Goal
-
 from collections.abc import Callable
+
+from src.agentPackage.state import State
+from src.agentPackage.action import Action
+from src.agentPackage.goal import Goal
 
 
 class NPuzzleState(State):
@@ -159,6 +159,7 @@ def manhattanDistance(
         total_distance += abs(current_row - goal_row) + abs(current_col - goal_col)
 
     return total_distance
+
 
 def heuristicDistFunction(
     state: NPuzzleState,

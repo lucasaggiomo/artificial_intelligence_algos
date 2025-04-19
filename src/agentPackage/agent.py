@@ -1,19 +1,17 @@
-from .perception import Perception
-from .sensor import Sensor
-from .environment import Environment
-from .action import Action
-from .state import State
+from src.agentPackage.perception import Perception
+from src.agentPackage.sensor import Sensor
+from src.agentPackage.environment import Environment
+from src.agentPackage.action import Action
 
 
 class Agent:
-    def __init__(self, environment: Environment, sensor: Sensor):
-        self.environment = environment
+    def __init__(self, sensor: Sensor):
         self.sensor = sensor
 
-    def percept(self) -> Perception:
-        return self.sensor.getPerception(self.environment)
+    def percept(self, environment: Environment) -> Perception:
+        """Restituisce una **Perception** a partire da un **environment**, utilizzando il suo **self.sensor**"""
+        return self.sensor.percept(environment)
 
-    def executeAction(self, action: Action) -> State:
-        """Esegue l'azione sull'ambiente e restituisce lo stato successivo dell'ambiente"""
-        return self.environment.evolveState(action)
-        # self.environment.render()
+    def executeAction(self, action: Action, environment: Environment):
+        """Esegue l'azione **action** sull'ambiente **environment**"""
+        environment.evolveState(action)

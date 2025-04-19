@@ -1,4 +1,5 @@
-from .state import State
+from src.agentPackage.state import State
+
 from collections.abc import Callable
 
 type GoalFunctionType = Callable[[State], bool]
@@ -6,7 +7,6 @@ type GoalFunctionType = Callable[[State], bool]
 
 class Goal:
     """Obiettivo da perseguire"""
-
     def __init__(
         self,
         achievedGoalFunction: GoalFunctionType,

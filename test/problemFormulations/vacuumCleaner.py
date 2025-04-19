@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from agentPackage.state import State
-from agentPackage.action import Action
+from src.agentPackage.state import State
+from src.agentPackage.action import Action
 
 
 class VacuumState(State):
@@ -87,12 +87,12 @@ class VacuumAction(Action):
         return hash(self.value)
 
 
-def getAllStates(cls) -> list[VacuumState]:
-    return [cls(i) for i in range(8)]
+def getAllStates() -> list[VacuumState]:
+    return [VacuumState(i) for i in range(8)]
 
 
-def getAllActions(cls) -> list[VacuumAction]:
-    return [cls(a) for a in VacuumAction.ACTION_LABELS.keys()]
+def getAllActions() -> list[VacuumAction]:
+    return [VacuumAction(a) for a in VacuumAction.ACTION_LABELS.keys()]
 
 
 def putBitInPosition(bitmap: int, bit: int, position: int) -> int:

@@ -1,6 +1,7 @@
-from .perception import Perception
-from .environment import Environment
+from src.agentPackage.perception import Perception
+from src.agentPackage.environment import Environment
+
 
 class Sensor:
-    def getPerception(self, environment: Environment) -> Perception:
+    def percept(self, environment: Environment) -> Perception:
         return Perception(environment.getCurrentState())

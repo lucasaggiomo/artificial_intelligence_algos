@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from .node import Node
+from src.agentPackage.nodes.node import Node
+from src.agentPackage.tasks.game import Game
+from src.agentPackage.state import State
+from src.agentPackage.action import Action
 
-from .state import State
-from .action import Action
-from .game import Game
 
-
-class GameNode(Node):
+class GameNode(Node[Game]):
 
     def __init__(
         self,
@@ -23,10 +22,7 @@ class GameNode(Node):
         action: Action                      # l'azione che ha portato a generare il nodo
         utility: float                      # valore di utilità del nodo (stato)
         """
-        self.parent = parent
-        self.children = []
-        self.state = state
-        self.action = action
+        super().__init__(parent, state, action)
         self.utility = utility
 
     def createChild(self, newState: State, action: Action, game: Game) -> GameNode:
@@ -38,5 +34,5 @@ class GameNode(Node):
         )
 
     # operators (by utility)
-    def comparison_value(self):
+    def comparisonValue(self):
         return self
