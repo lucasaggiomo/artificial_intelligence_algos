@@ -1,15 +1,19 @@
-from src.agentPackage.state import State
-
 from collections.abc import Callable
+from typing import Generic
 
-type GoalFunctionType = Callable[[State], bool]
+from src.agentPackage.state import State
+from src.agentPackage.typeVars import S
+
+type GoalFunctionType[S: State] = Callable[[S], bool]
+type HeuristicFunctionType[S: State] = Callable[[S, Goal], float]
 
 
-class Goal:
+class Goal(Generic[S]):
     """Obiettivo da perseguire"""
+
     def __init__(
         self,
-        achievedGoalFunction: GoalFunctionType,
+        achievedGoalFunction: GoalFunctionType[S],
         toStr: Callable[[], str] = None,
         context=None,
     ):
@@ -17,7 +21,7 @@ class Goal:
         self.toStr = toStr
         self.context = context
 
-    def isGoalAchieved(self, state: State) -> bool:
+    def isGoalAchieved(self, state: S) -> bool:
         return self.achievedGoalFunction(state)
 
     def __str__(self) -> str:

@@ -1,29 +1,30 @@
-from src.agentPackage.tasks.task import Task
-from src.agentPackage.goal import Goal
-from src.agentPackage.state import State
-from src.agentPackage.environment import Environment
+from typing import Generic
+
 from src.agentPackage.customTypes import (
     ActionsPerStateType,
-    TransitionModelType,
-    PathFunctionType,
-    HeuristicFunctionType,
     HeuristicStateOnlyFunctionType,
+    PathFunctionType,
+    TransitionModelType,
 )
+from src.agentPackage.environment import Environment
+from src.agentPackage.goal import Goal, HeuristicFunctionType
+from src.agentPackage.tasks.task import Task
+from src.agentPackage.typeVars import A, S
 
 
-class Problem(Task):
+class Problem(Generic[S, A], Task[S, A]):
     def __init__(
         self,
-        initialState: State,
-        environment: Environment,
-        actionsPerState: ActionsPerStateType,
-        transitionModel: TransitionModelType,
+        initialState: S,
+        environment: Environment[S, A],
+        actionsPerState: ActionsPerStateType[S, A],
+        transitionModel: TransitionModelType[S, A],
         goal: Goal,
         pathCostFunction: PathFunctionType,
         heuristicDistFunction: HeuristicFunctionType = None,
     ):
         """
-        **initialState**: *State*                                     - stato di partenza\\
+        **initialState**: *S*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\
         **actionsPerState**: *ActionsPerStateType*                    - associa ad ogni stato l'insieme delle possibili azioni\\
         **transitionModel**: *TransitionModelType*                    - associa ad ogni azione, a partire da uno stato, lo stato successivo\\
@@ -34,11 +35,9 @@ class Problem(Task):
         super().__init__(initialState, environment, actionsPerState, transitionModel)
         self.goal = goal
         self.pathCostFunction = pathCostFunction
-        self.heuristicDistFunction = lambda state: heuristicDistFunction(
-            state, self.goal
-        )
+        self.heuristicDistFunction = lambda state: heuristicDistFunction(state, self.goal)
 
-    def isGoalAchieved(self, state: State) -> bool:
+    def isGoalAchieved(self, state: S) -> bool:
         return self.goal.isGoalAchieved(state)
 
     def __str__(self) -> str:

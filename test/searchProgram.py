@@ -1,36 +1,26 @@
-from threading import Thread, Event
-from collections.abc import Callable
-
-from src.agentPackage.state import State
-from src.agentPackage.goal import Goal
-from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.agent import Agent
-from src.agentPackage.environment import Environment
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.agent import Agent
-from src.agentPackage.taskSolvers.problemSolving import (
-    ProblemSolving,
-    SearchAlgorithmType,
-)
-
-from src.agentPackage.customTypes import (
-    ActionsPerStateType,
-    TransitionModelType,
-    PathFunctionType,
-)
-
 import test.problemFormulations.nPuzzle as puzzle
-from test.problemFormulations.nPuzzle import (
-    NPuzzleState,
-    MoveAction,
-    transitionModel,
-    actionsPerState,
-    pathCostFunction,
-    heuristicDistFunction,
-    manhattanDistance,
-    generateRandomState,
-    generateSortedState,
-)
+from collections.abc import Callable
+from test.problemFormulations.nPuzzle import (MoveAction, NPuzzleState,
+                                              actionsPerState,
+                                              generateRandomState,
+                                              generateSortedState,
+                                              heuristicDistFunction,
+                                              manhattanDistance,
+                                              pathCostFunction,
+                                              transitionModel)
+from threading import Event, Thread
+
+from src.agentPackage.agent import Agent
+from src.agentPackage.customTypes import (ActionsPerStateType,
+                                          PathFunctionType,
+                                          TransitionModelType)
+from src.agentPackage.environment import Environment
+from src.agentPackage.goal import Goal
+from src.agentPackage.sensor import Sensor
+from src.agentPackage.state import State
+from src.agentPackage.tasks.problem import Problem
+from src.agentPackage.taskSolvers.problemSolving import (ProblemSolving,
+                                                         SearchAlgorithmType)
 
 # import test.problemFormulations.googleMaps as maps
 # from test.problemFormulations.googleMaps import (

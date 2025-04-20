@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+from typing import Generic, Self
+
 from src.agentPackage.nodes.node import Node
 from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.state import State
-from src.agentPackage.action import Action
+from src.agentPackage.typeVars import A, S
 
 
-class ProblemNode(Node[Problem]):
+class ProblemNode(Generic[S, A], Node[S, A, Problem[S, A]]):
     def __init__(
         self,
-        parent: ProblemNode,
-        state: State,
-        action: Action,
+        parent: Self,
+        state: S,
+        action: A,
         pathCost: float,
         heuristicDist: float,
     ):
@@ -27,10 +28,8 @@ class ProblemNode(Node[Problem]):
         self.pathCost = pathCost
         self.heuristicDist = heuristicDist
 
-    def createChild(
-        self, newState: State, action: Action, problem: Problem
-    ) -> ProblemNode:
-        return ProblemNode(
+    def createChild(self, newState: S, action: A, problem: Problem[S, A]) -> Self:
+        return ProblemNode[S, A](
             parent=self,
             action=action,
             state=newState,

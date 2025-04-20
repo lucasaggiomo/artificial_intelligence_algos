@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+from typing import Generic, Self
+
 from src.agentPackage.nodes.node import Node
 from src.agentPackage.tasks.game import Game
-from src.agentPackage.state import State
-from src.agentPackage.action import Action
+from src.agentPackage.typeVars import A, S
 
 
-class GameNode(Node[Game]):
-
+class GameNode(Generic[S, A], Node[S, A, Game[S, A]]):
     def __init__(
         self,
-        parent: GameNode,
-        state: State,
-        action: Action,
+        parent: Self,
+        state: S,
+        action: A,
         utility: float,
     ):
         """
@@ -25,8 +25,8 @@ class GameNode(Node[Game]):
         super().__init__(parent, state, action)
         self.utility = utility
 
-    def createChild(self, newState: State, action: Action, game: Game) -> GameNode:
-        return GameNode(
+    def createChild(self, newState: S, action: A, game: Game[S, A]) -> Self:
+        return GameNode[S, A](
             parent=self,
             action=action,
             state=newState,

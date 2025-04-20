@@ -2,14 +2,16 @@ from collections.abc import Callable
 
 from src.agentPackage.action import Action
 from src.agentPackage.state import State
-from src.agentPackage.goal import Goal
 
-type PathFunctionType = Callable[[State, Action], float]
-type HeuristicFunctionType = Callable[[State, Goal], float]
-type HeuristicStateOnlyFunctionType = Callable[[State], float]
-type ActionsPerStateType = Callable[[State], list[Action]]
-type TransitionModelType = Callable[[State, Action], State]
-type SolutionType = tuple[list[Action] | None, float] | None  # None = no solution, (None, float) = cutoff, ([...], float) = solution
+# from src.agentPackage.goal import Goal
 
-type UtilityFunctionType = Callable[[State], float]
-type TerminalTestFunctionType = Callable[[State], bool]
+type PathFunctionType[S: State, A: Action] = Callable[[S, A], float]
+type HeuristicStateOnlyFunctionType[S: State, A: Action] = Callable[[S], float]
+type ActionsPerStateType[S: State, A: Action] = Callable[[S], list[A]]
+type TransitionModelType[S: State, A: Action] = Callable[[S, A], S]
+
+# None = no solution, (None, float) = cutoff, ([...], float) = solution
+type SolutionType[A: Action] = tuple[list[A] | None, float] | None
+
+type UtilityFunctionType[S: State] = Callable[[S], float]
+type TerminalTestFunctionType[S: State] = Callable[[S], bool]

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class State(ABC):
     """Classe astratta per rappresentare uno stato generico."""
     

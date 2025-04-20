@@ -2,22 +2,25 @@ from collections import deque
 from collections.abc import Callable
 from heapq import *
 from threading import Event
+from typing import Generic
 
-from src.agentPackage.taskSolvers.taskSolver import TaskSolver
-from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.nodes.problemNode import ProblemNode
-from src.agentPackage.state import State
+from src.agentPackage.action import Action
 from src.agentPackage.agent import Agent
 from src.agentPackage.customTypes import SolutionType
+from src.agentPackage.nodes.problemNode import ProblemNode
+from src.agentPackage.state import State
+from src.agentPackage.tasks.problem import Problem
+from src.agentPackage.taskSolvers.taskSolver import TaskSolver
+from src.agentPackage.typeVars import A, S
 
-type SearchAlgorithmType = Callable[[Problem, Event], SolutionType]
+type SearchAlgorithmType[S: State, A: Action] = Callable[[Problem[S, A], Event], SolutionType[A]]
 
 
-class ProblemSolving(TaskSolver[Problem]):
+class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
     CUTOFF = None
     NO_SOLUTIONS = [None, -1]
 
-    def __init__(self, agent: Agent, problem: Problem):
+    def __init__(self, agent: Agent[S, A], problem: Problem[S, A]):
         super().__init__([agent], problem)
 
         self.agent = agent
@@ -26,7 +29,7 @@ class ProblemSolving(TaskSolver[Problem]):
 
     def simpleProblemSolvingAgent(
         self,
-        search: SearchAlgorithmType,
+        search: SearchAlgorithmType[S, A],
         stopEvent: Event,
         executeSolution: bool = False,
         print_problem: bool = False,
@@ -40,9 +43,7 @@ class ProblemSolving(TaskSolver[Problem]):
         solution = search(self.problem, stopEvent)
         if solution is None:
             # cutoff
-            print(
-                "Nessuna soluzione trovata, ma non è stato visitato tutto l'albero degli stati"
-            )
+            print("Nessuna soluzione trovata, ma non è stato visitato tutto l'albero degli stati")
             return
 
         actions, cost = solution
@@ -59,11 +60,11 @@ class ProblemSolving(TaskSolver[Problem]):
             print("Inizio l'esecuzione...")
             self.problem.environment.render()
             for action in actions:
-                self.agent.executeAction(action)
+                self.agent.executeAction(action, self.problem.environment)
                 self.currentState = self.problem.environment.getCurrentState()
 
     @staticmethod
-    def backtrackSolution(node: ProblemNode) -> SolutionType:
+    def backtrackSolution(node: ProblemNode[S, A]) -> SolutionType[A]:
         actions = deque()
         cost = node.pathCost
         curr = node
@@ -73,8 +74,8 @@ class ProblemSolving(TaskSolver[Problem]):
         return (list(actions), cost)
 
     @staticmethod
-    def breadthFirstSearch(problem: Problem, stopEvent: Event) -> SolutionType:
-        node = ProblemNode(
+    def breadthFirstSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        node = ProblemNode[S, A](
             parent=None,
             state=problem.initialState,
             action=None,
@@ -83,12 +84,12 @@ class ProblemSolving(TaskSolver[Problem]):
         )
 
         if problem.isGoalAchieved(node.state):
-            return ProblemSolving.backtrackSolution(node)
+            return ProblemSolving[S, A].backtrackSolution(node)
 
-        fringe: deque[ProblemNode] = deque()
+        fringe: deque[ProblemNode[S, A]] = deque()
         fringe.appendleft(node)
 
-        explored: set[State] = set()
+        explored: set[S] = set()
 
         while True:
             if stopEvent.is_set():
@@ -109,12 +110,12 @@ class ProblemSolving(TaskSolver[Problem]):
                 child = node.childNode(problem, action)
                 if child.state not in explored:
                     if problem.isGoalAchieved(child.state):
-                        return ProblemSolving.backtrackSolution(child)
+                        return ProblemSolving[S, A].backtrackSolution(child)
                     fringe.appendleft(child)
 
     @staticmethod
-    def depthFirstSearch(problem: Problem, stopEvent: Event) -> SolutionType:
-        node = ProblemNode(
+    def depthFirstSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        node = ProblemNode[S, A](
             parent=None,
             state=problem.initialState,
             action=None,
@@ -123,12 +124,12 @@ class ProblemSolving(TaskSolver[Problem]):
         )
 
         if problem.isGoalAchieved(node.state):
-            return ProblemSolving.backtrackSolution(node)
+            return ProblemSolving[S, A].backtrackSolution(node)
 
-        fringe: deque[ProblemNode] = deque()
+        fringe: deque[ProblemNode[S, A]] = deque()
         fringe.append(node)
 
-        explored: set[State] = set()
+        explored: set[S] = set()
 
         while True:
             if stopEvent.is_set():
@@ -149,12 +150,12 @@ class ProblemSolving(TaskSolver[Problem]):
                 child = node.childNode(problem, action)
                 if child.state not in explored:
                     if problem.isGoalAchieved(child.state):
-                        return ProblemSolving.backtrackSolution(child)
+                        return ProblemSolving[S, A].backtrackSolution(child)
                     fringe.append(child)
 
     @staticmethod
-    def depthFirstSearchRecursive(problem: Problem, stopEvent: Event) -> SolutionType:
-        initialNode = ProblemNode(
+    def depthFirstSearchRecursive(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        initialNode = ProblemNode[S, A](
             parent=None,
             state=problem.initialState,
             action=None,
@@ -162,15 +163,15 @@ class ProblemSolving(TaskSolver[Problem]):
             heuristicDist=problem.heuristicDistFunction(problem.initialState),
         )
 
-        explored: set[State] = set()
-        return ProblemSolving.depthFirstSearchRecursiveHelper(
+        explored: set[S] = set()
+        return ProblemSolving[S, A].depthFirstSearchRecursiveHelper(
             problem, stopEvent, initialNode, explored
         )
 
     @staticmethod
     def depthFirstSearchRecursiveHelper(
-        problem: Problem, stopEvent: Event, node: ProblemNode, explored: set
-    ) -> SolutionType:
+        problem: Problem[S, A], stopEvent: Event, node: ProblemNode[S, A], explored: set[S]
+    ) -> SolutionType[A]:
         if stopEvent.is_set():
             return ProblemSolving.CUTOFF
 
@@ -183,7 +184,7 @@ class ProblemSolving(TaskSolver[Problem]):
             child = node.childNode(problem, action)
 
             if child.state not in explored:
-                solution = ProblemSolving.depthFirstSearchRecursiveHelper(
+                solution = ProblemSolving[S, A].depthFirstSearchRecursiveHelper(
                     problem, stopEvent, child, explored
                 )
                 if solution is not ProblemSolving.NO_SOLUTIONS:
@@ -193,9 +194,9 @@ class ProblemSolving(TaskSolver[Problem]):
 
     @staticmethod
     def depthFirstSearchRecursiveLimited(
-        problem: Problem, stopEvent: Event, limit: int
-    ) -> SolutionType:
-        initialNode = ProblemNode(
+        problem: Problem[S, A], stopEvent: Event, limit: int
+    ) -> SolutionType[A]:
+        initialNode = ProblemNode[S, A](
             parent=None,
             state=problem.initialState,
             action=None,
@@ -203,22 +204,24 @@ class ProblemSolving(TaskSolver[Problem]):
             heuristicDist=problem.heuristicDistFunction(problem.initialState),
         )
 
-        explored: set[State] = set()
-        return ProblemSolving.depthFirstSearchRecursiveLimitedHelper(
+        explored: set[S] = set()
+        return ProblemSolving[S, A].depthFirstSearchRecursiveLimitedHelper(
             problem, stopEvent, initialNode, explored, limit
         )
 
     @staticmethod
     def depthFirstSearchRecursiveLimitedHelper(
-        problem: Problem, stopEvent: Event, node: ProblemNode, explored: set, limit: int
-    ) -> SolutionType:
+        problem: Problem[S, A],
+        stopEvent: Event,
+        node: ProblemNode[S, A],
+        explored: set[S],
+        limit: int,
+    ) -> SolutionType[A]:
         if stopEvent.is_set():
             return ProblemSolving.CUTOFF
 
         if problem.isGoalAchieved(node.state):
-            return ProblemSolving.backtrackSolution(
-                node
-            )  # Abbiamo trovato la soluzione
+            return ProblemSolving[S, A].backtrackSolution(node)  # Abbiamo trovato la soluzione
 
         if limit == 0:
             return ProblemSolving.CUTOFF
@@ -231,7 +234,7 @@ class ProblemSolving(TaskSolver[Problem]):
             child = node.childNode(problem, action)
 
             if child.state not in explored:
-                solution = ProblemSolving.depthFirstSearchRecursiveLimitedHelper(
+                solution = ProblemSolving[S, A].depthFirstSearchRecursiveLimitedHelper(
                     problem, stopEvent, child, explored, limit - 1
                 )
                 if solution is ProblemSolving.CUTOFF:
@@ -246,13 +249,13 @@ class ProblemSolving(TaskSolver[Problem]):
         return ProblemSolving.NO_SOLUTIONS
 
     @staticmethod
-    def iterativeDeepeningSearch(problem: Problem, stopEvent: Event) -> SolutionType:
+    def iterativeDeepeningSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
         limit = 1
         while True:
             if stopEvent.is_set():
                 return ProblemSolving.CUTOFF
 
-            solution = ProblemSolving.depthFirstSearchRecursiveLimited(
+            solution = ProblemSolving[S, A].depthFirstSearchRecursiveLimited(
                 problem, stopEvent, limit
             )
             if solution is not ProblemSolving.CUTOFF:
@@ -263,9 +266,9 @@ class ProblemSolving(TaskSolver[Problem]):
 
     @staticmethod
     def bestFirstSearch(
-        problem: Problem, stopEvent: Event, costFunction: Callable[[ProblemNode], int]
-    ) -> SolutionType:
-        node = ProblemNode(
+        problem: Problem[S, A], stopEvent: Event, costFunction: Callable[[ProblemNode[S, A]], int]
+    ) -> SolutionType[A]:
+        node = ProblemNode[S, A](
             parent=None,
             state=problem.initialState,
             action=None,
@@ -274,14 +277,14 @@ class ProblemSolving(TaskSolver[Problem]):
         )
 
         if problem.isGoalAchieved(node.state):
-            return ProblemSolving.backtrackSolution(node)
+            return ProblemSolving[S, A].backtrackSolution(node)
 
-        fringe: list[ProblemNode] = []
+        fringe: list[ProblemNode[S, A]] = []
         heappush(fringe, (costFunction(node), node))
 
-        costMap: dict[State, float] = {node.state: node}
+        costMap: dict[S, float] = {node.state: node}
 
-        explored: set[State] = set()
+        explored: set[S] = set()
 
         while True:
             if stopEvent.is_set():
@@ -290,13 +293,13 @@ class ProblemSolving(TaskSolver[Problem]):
             if len(fringe) == 0:
                 return ProblemSolving.NO_SOLUTIONS
 
-            node: ProblemNode = heappop(fringe)[1]
+            node: ProblemNode[S, A] = heappop(fringe)[1]
             # ignora se già esplorato (controllo anche qui perché non rimuovo dalla fringe)
             if node.state in explored:
                 continue
 
             if problem.isGoalAchieved(node.state):
-                return ProblemSolving.backtrackSolution(node)
+                return ProblemSolving[S, A].backtrackSolution(node)
 
             explored.add(node.state)
 
@@ -317,19 +320,17 @@ class ProblemSolving(TaskSolver[Problem]):
                     costMap[child.state] = nextCost
 
     @staticmethod
-    def uniformSearch(problem: Problem, stopEvent: Event) -> SolutionType:
-        return ProblemSolving.bestFirstSearch(
-            problem, stopEvent, lambda node: node.pathCost
-        )
+    def uniformSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        return ProblemSolving[S, A].bestFirstSearch(problem, stopEvent, lambda node: node.pathCost)
 
     @staticmethod
-    def greedySearch(problem: Problem, stopEvent: Event) -> SolutionType:
-        return ProblemSolving.bestFirstSearch(
+    def greedySearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        return ProblemSolving[S, A].bestFirstSearch(
             problem, stopEvent, lambda node: node.heuristicDist
         )
 
     @staticmethod
-    def aStarSearch(problem: Problem, stopEvent: Event) -> SolutionType:
-        return ProblemSolving.bestFirstSearch(
+    def aStarSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
+        return ProblemSolving[S, A].bestFirstSearch(
             problem, stopEvent, lambda node: node.pathCost + node.heuristicDist
         )

@@ -1,33 +1,31 @@
-from src.agentPackage.tasks.task import Task
-from src.agentPackage.state import State
-from src.agentPackage.environment import Environment
+from typing import Generic
+
 from src.agentPackage.customTypes import (
     ActionsPerStateType,
+    TerminalTestFunctionType,
     TransitionModelType,
     UtilityFunctionType,
-    TerminalTestFunctionType,
 )
+from src.agentPackage.environment import Environment
+from src.agentPackage.tasks.task import Task
+from src.agentPackage.typeVars import A, S
 
 
-class Game(Task):
+class Game(Generic[S, A], Task[S, A]):
     def __init__(
         self,
-        initialState: State,
-        environment: Environment,
-        actionsPerState: ActionsPerStateType,
-        transitionModel: TransitionModelType,
-        utilityFunction: UtilityFunctionType,
-        terminalTest: TerminalTestFunctionType,
+        initialState: S,
+        environment: Environment[S, A],
+        actionsPerState: ActionsPerStateType[S, A],
+        transitionModel: TransitionModelType[S, A],
+        terminalTest: TerminalTestFunctionType[S],
     ):
         """
         **initialState**: *State*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\
         **actionsPerState**: *ActionsPerStateType*                    - associa ad ogni stato l'insieme delle possibili azioni\\
         **transitionModel**: *TransitionModelType*                    - associa ad ogni azione, a partire da uno stato, lo stato successivo\\
-        **goal**: *Goal*                                              - obiettivo\\
-        **pathCostFunction**: *PathFunctionType*                      - funzione del costo di un percorso, dato stato e azione\\
-        **heuristicDistFunction**: *HeuristicStateOnlyFunctionType*   - funzione heuristica della distanza di uno stato dalla/e destinazione/i\\
+        **terminalTest**: *TerminalTestFunctionType*                  - restituisce True se lo stato in ingresso è di GameOver, False altrimenti\\
         """
         super().__init__(initialState, environment, actionsPerState, transitionModel)
-        self.utilityFunction = utilityFunction
         self.terminalTest = terminalTest
