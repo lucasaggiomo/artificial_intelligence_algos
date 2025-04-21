@@ -1,9 +1,12 @@
-from typing import Generic
+from typing import Generic, TypeVar
 
+from src.agentPackage.action import A
 from src.agentPackage.environment import Environment
 from src.agentPackage.perception import Perception
 from src.agentPackage.sensor import Sensor
-from src.agentPackage.typeVars import A, S
+from src.agentPackage.state import S
+
+AG = TypeVar("AG", bound="Agent")
 
 
 class Agent(Generic[S, A]):

@@ -1,31 +1,33 @@
+from abc import ABC, abstractmethod
 from typing import Generic
 
-from src.agentPackage.customTypes import (
-    ActionsPerStateType,
-    TerminalTestFunctionType,
-    TransitionModelType,
-    UtilityFunctionType,
-)
+from src.agentPackage.action import A
 from src.agentPackage.environment import Environment
+from src.agentPackage.player import Player
+from src.agentPackage.state import S
 from src.agentPackage.tasks.task import Task
-from src.agentPackage.typeVars import A, S
 
 
-class Game(Generic[S, A], Task[S, A]):
+class Game(Generic[S, A], Task[S, A, Player[S, A]], ABC):
+    """A Game is a Task whose agents are players"""
+
+    @abstractmethod
     def __init__(
         self,
         initialState: S,
         environment: Environment[S, A],
-        actionsPerState: ActionsPerStateType[S, A],
-        transitionModel: TransitionModelType[S, A],
-        terminalTest: TerminalTestFunctionType[S],
+        players: list[Player[S, A]],
     ):
         """
         **initialState**: *State*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\
-        **actionsPerState**: *ActionsPerStateType*                    - associa ad ogni stato l'insieme delle possibili azioni\\
-        **transitionModel**: *TransitionModelType*                    - associa ad ogni azione, a partire da uno stato, lo stato successivo\\
-        **terminalTest**: *TerminalTestFunctionType*                  - restituisce True se lo stato in ingresso è di GameOver, False altrimenti\\
+        **players**: *list[Player]*                                   - players presenti nel sistema\\
         """
-        super().__init__(initialState, environment, actionsPerState, transitionModel)
-        self.terminalTest = terminalTest
+        super().__init__(initialState, environment, players)
+
+    @abstractmethod
+    def terminalTest(self, state: S) -> bool:
+        """
+        Restituisce `True` se lo stato **state** è di terminazione (cioè uno stato di *GameOver*)
+        """
+        pass

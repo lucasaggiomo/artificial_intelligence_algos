@@ -4,16 +4,16 @@ from heapq import *
 from threading import Event
 from typing import Generic
 
-from src.agentPackage.action import Action
+from src.agentPackage.action import A, Action
 from src.agentPackage.agent import Agent
-from src.agentPackage.customTypes import SolutionType
 from src.agentPackage.nodes.problemNode import ProblemNode
-from src.agentPackage.state import State
+from src.agentPackage.state import S, State
 from src.agentPackage.tasks.problem import Problem
 from src.agentPackage.taskSolvers.taskSolver import TaskSolver
-from src.agentPackage.typeVars import A, S
 
+type SolutionType[A: Action] = tuple[list[A] | None, float] | None
 type SearchAlgorithmType[S: State, A: Action] = Callable[[Problem[S, A], Event], SolutionType[A]]
+type CostFunctionType[S: State, A: Action] = Callable[[ProblemNode[S, A]], float]
 
 
 class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
@@ -21,7 +21,7 @@ class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
     NO_SOLUTIONS = [None, -1]
 
     def __init__(self, agent: Agent[S, A], problem: Problem[S, A]):
-        super().__init__([agent], problem)
+        super().__init__(problem)
 
         self.agent = agent
         self.problem = problem
@@ -71,7 +71,7 @@ class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
         while curr.parent is not None:
             actions.appendleft(curr.action)
             curr = curr.parent
-        return (list(actions), cost)
+        return (list[A](actions), cost)
 
     @staticmethod
     def breadthFirstSearch(problem: Problem[S, A], stopEvent: Event) -> SolutionType[A]:
@@ -176,7 +176,7 @@ class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
             return ProblemSolving.CUTOFF
 
         if problem.isGoalAchieved(node.state):
-            return ProblemSolving.backtrackSolution(node)
+            return ProblemSolving[S, A].backtrackSolution(node)
 
         explored.add(node.state)
 
@@ -266,7 +266,7 @@ class ProblemSolving(Generic[S, A], TaskSolver[S, A, Problem[S, A]]):
 
     @staticmethod
     def bestFirstSearch(
-        problem: Problem[S, A], stopEvent: Event, costFunction: Callable[[ProblemNode[S, A]], int]
+        problem: Problem[S, A], stopEvent: Event, costFunction: CostFunctionType[S, A]
     ) -> SolutionType[A]:
         node = ProblemNode[S, A](
             parent=None,

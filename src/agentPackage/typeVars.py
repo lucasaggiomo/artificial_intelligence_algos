@@ -1,8 +1,7 @@
-from typing import TypeVar
+# --------------------------------- DEPRECATED ---------------------------------
 
-from src.agentPackage.action import Action
-from src.agentPackage.state import State
+# from typing import TypeVar
 
-# TypeVar per i tipi generici
-S = TypeVar("S", bound=State)
-A = TypeVar("A", bound=Action)
+# from src.agentPackage.action import Action
+# from src.agentPackage.state import State
+# from src.agentPackage.tasks.task import Task

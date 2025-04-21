@@ -1,41 +1,43 @@
+from abc import ABC, abstractmethod
 from typing import Generic
 
-from src.agentPackage.customTypes import (
-    ActionsPerStateType,
-    HeuristicStateOnlyFunctionType,
-    PathFunctionType,
-    TransitionModelType,
-)
+from src.agentPackage.action import A
+from src.agentPackage.agent import Agent
 from src.agentPackage.environment import Environment
-from src.agentPackage.goal import Goal, HeuristicFunctionType
+from src.agentPackage.goal import Goal
+from src.agentPackage.state import S
 from src.agentPackage.tasks.task import Task
-from src.agentPackage.typeVars import A, S
 
 
-class Problem(Generic[S, A], Task[S, A]):
+class Problem(Generic[S, A], Task[S, A, Agent[S, A]], ABC):
+    @abstractmethod
     def __init__(
         self,
         initialState: S,
         environment: Environment[S, A],
-        actionsPerState: ActionsPerStateType[S, A],
-        transitionModel: TransitionModelType[S, A],
-        goal: Goal,
-        pathCostFunction: PathFunctionType,
-        heuristicDistFunction: HeuristicFunctionType = None,
+        agents: list[Agent[S, A]],
+        goal: Goal[S],
     ):
         """
-        **initialState**: *S*                                     - stato di partenza\\
+        **initialState**: *State*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\
-        **actionsPerState**: *ActionsPerStateType*                    - associa ad ogni stato l'insieme delle possibili azioni\\
-        **transitionModel**: *TransitionModelType*                    - associa ad ogni azione, a partire da uno stato, lo stato successivo\\
+        **agents**: *list[Agent]*                                     - agenti presenti nel sistema\\
         **goal**: *Goal*                                              - obiettivo
-        **pathCostFunction**: *PathFunctionType*                      . funzione del costo di un percorso, dato stato e azione
-        **heuristicDistFunction**: *HeuristicStateOnlyFunctionType*   - funzione heuristica della distanza di uno stato dalla/e destinazione/i
         """
-        super().__init__(initialState, environment, actionsPerState, transitionModel)
+        super().__init__(initialState, environment, agents)
         self.goal = goal
-        self.pathCostFunction = pathCostFunction
-        self.heuristicDistFunction = lambda state: heuristicDistFunction(state, self.goal)
+
+    @abstractmethod
+    def pathCostFunction(self, state: S, action: A) -> float:
+        """Funzione del costo di un percorso, dato stato e azione"""
+        pass
+
+    @abstractmethod
+    def heuristicDistFunction(self, state: S) -> float:
+        """Funzione heuristica della distanza di uno stato dalla/e destinazione/i"""
+        # prima era così:
+        # self.heuristicDistFunction = lambda state: heuristicDistFunction(state, self.goal)
+        pass
 
     def isGoalAchieved(self, state: S) -> bool:
         return self.goal.isGoalAchieved(state)

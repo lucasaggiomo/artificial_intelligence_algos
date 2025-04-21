@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Generic, Self
 
+from src.agentPackage.action import A
 from src.agentPackage.nodes.node import Node
+from src.agentPackage.state import S
 from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.typeVars import A, S
 
 
 class ProblemNode(Generic[S, A], Node[S, A, Problem[S, A]]):
@@ -21,8 +22,8 @@ class ProblemNode(Generic[S, A], Node[S, A, Problem[S, A]]):
         **children**: *list[Node]*                - i nodi figli associati
         **state**: *State*                        - lo stato associato al nodo
         **action**: *Action*                      - l'azione che ha portato a generare il nodo
-        **pathCost**: *float*                       - costo per raggiungere il nodo a partire dalla radice
-        **heuristicDist**: *float*                   - distanza heuristica dalla/e destinazione/i
+        **pathCost**: *float*                     - costo per raggiungere il nodo a partire dalla radice
+        **heuristicDist**: *float*                - distanza heuristica dalla/e destinazione/i
         """
         super().__init__(parent, state, action)
         self.pathCost = pathCost
@@ -34,11 +35,7 @@ class ProblemNode(Generic[S, A], Node[S, A, Problem[S, A]]):
             action=action,
             state=newState,
             pathCost=self.pathCost + problem.pathCostFunction(self.state, action),
-            heuristicDist=(
-                problem.heuristicDistFunction(newState)
-                if problem.heuristicDistFunction is not None
-                else 0
-            ),
+            heuristicDist=problem.heuristicDistFunction(newState),
         )
 
     # operators (by pathCost)

@@ -1,8 +1,9 @@
 from typing import Generic
 
+from src.agentPackage.action import A
 from src.agentPackage.environment import Environment
 from src.agentPackage.perception import Perception
-from src.agentPackage.typeVars import A, S
+from src.agentPackage.state import S
 
 
 class Sensor(Generic[S, A]):

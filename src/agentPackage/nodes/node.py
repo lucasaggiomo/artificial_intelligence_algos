@@ -3,8 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, Self
 
+from src.agentPackage.action import A
+from src.agentPackage.state import S
 from src.agentPackage.tasks.task import T
-from src.agentPackage.typeVars import A, S
 
 
 class Node(Generic[S, A, T], ABC):
@@ -34,7 +35,7 @@ class Node(Generic[S, A, T], ABC):
         """
         Crea un nodo figlio usando il metodo astratto `createChild` che ogni sottoclasse deve implementare.
         """
-        newState = task.getNextState(self.state, action)
+        newState = task.transitionModel(self.state, action)
 
         # metodo astratto per creare un nodo figlio
         newNode = self.createChild(newState, action, task)
@@ -57,42 +58,24 @@ class Node(Generic[S, A, T], ABC):
 
     def __lt__(self, other) -> bool:
         """self < other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() < other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() < other.comparisonValue()
 
     def __le__(self, other) -> bool:
         """self <= other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() <= other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() <= other.comparisonValue()
 
     def __eq__(self, other) -> bool:
         """self == other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() == other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() == other.comparisonValue()
 
     def __ne__(self, other) -> bool:
         """self != other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() != other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() != other.comparisonValue()
 
     def __gt__(self, other) -> bool:
         """self > other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() > other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() > other.comparisonValue()
 
     def __ge__(self, other) -> bool:
         """self >= other."""
-        return (
-            isinstance(other, type(self))
-            and self.comparisonValue() >= other.comparisonValue()
-        )
+        return isinstance(other, type(self)) and self.comparisonValue() >= other.comparisonValue()

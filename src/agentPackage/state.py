@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import TypeVar
+
+S = TypeVar("S", bound="State")
 
 
 class State(ABC):
     """Classe astratta per rappresentare uno stato generico."""
-    
+
     @abstractmethod
     def __eq__(self, other: object) -> bool:
         """Definisce l'uguaglianza tra stati."""
@@ -18,10 +21,10 @@ class State(ABC):
     def __str__(self) -> str:
         """Rappresentazione leggibile dello stato."""
         pass
-    
+
     def __repr__(self) -> str:
         return self.__str__()
-    
+
     @abstractmethod
     def __eq__(self, other) -> bool:
         pass

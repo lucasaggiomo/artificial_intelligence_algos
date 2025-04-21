@@ -76,11 +76,27 @@ class TicTacToeAction(Action):
 
 
 class TicTacToeEnvironment(Environment[TicTacToeState, TicTacToeAction]):
-    pass
+    def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
+        return _transitionModel(state, action)
 
 
 class TicTacToeGame(Game[TicTacToeState, TicTacToeAction]):
-    pass
+    def __init__(
+        self,
+        initialState: TicTacToeState,
+        environment: Environment[TicTacToeState, TicTacToeAction],
+        players: list[TicTacToePlayer],
+    ):
+        super().__init__(initialState, environment, players)
+
+    def terminalTest(self, state: TicTacToeState) -> bool:
+        return _terminalTest(state)  # global function
+
+    def getActionsFromState(self, state: TicTacToeState) -> list[TicTacToeAction]:
+        return _actionsPerState(state)  # global function
+
+    def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
+        return _transitionModel(state, action)
 
 
 class TicTacToePlayer(Player[TicTacToeState, TicTacToeAction]):
@@ -88,11 +104,11 @@ class TicTacToePlayer(Player[TicTacToeState, TicTacToeAction]):
         super().__init__(Sensor[TicTacToeState, TicTacToeAction](), symbol.name)
         self.symbol = symbol
 
-    def utilityFunction(self, state: TicTacToeState) -> float:
-        winner = checkWinner(state)
+    def getUtility(self, state: TicTacToeState) -> float:
+        winner = _checkWinner(state)
 
         if winner is None:
-            if terminalTest(state):
+            if _terminalTest(state):
                 return 0
             return 0
 
@@ -100,19 +116,13 @@ class TicTacToePlayer(Player[TicTacToeState, TicTacToeAction]):
 
         return points if winner == self.symbol else -points
 
-    def getUtility(self, state: TicTacToeState) -> float:
-        return self.utilityFunction(state)
 
-
-class TicTacToeUser(User[TicTacToeState, TicTacToeAction]):
+class TicTacToeUser(TicTacToePlayer, User[TicTacToeState, TicTacToeAction]):
     def chooseAction(self, game: Game[TicTacToeState, TicTacToeAction]):
         currentState: TicTacToeState = self.percept(game.environment)
 
-        # Stampa lo stato attuale
-        game.environment.render()
-
         # Calcola le azioni valide
-        validActions = actionsPerState(currentState)
+        validActions = _actionsPerState(currentState)
         validPositions = [(a.row, a.col) for a in validActions]
         positionOutput = " - ".join(map(lambda t: f"{t[0]}, {t[1]}", validPositions))
 
@@ -132,9 +142,12 @@ class TicTacToeUser(User[TicTacToeState, TicTacToeAction]):
                 else:
                     print("Mossa non valida. Riprova.")
             except ValueError:
-                print("Input non valido. Inserisci un numero.")
+                print(
+                    'Input non valido. Inserisci una coppia del tipo "riga, colonna", separati da una virgola'
+                )
 
 
+# FUNZIONI DI COMODO
 def generateInitialState() -> TicTacToeState:
     board = [
         list(map(Symbol, row))
@@ -153,16 +166,10 @@ def generateInitialState() -> TicTacToeState:
     # )
 
 
-def transitionModel(state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
-    new_state = state.copy()
-    if new_state.board[action.row][action.col] != Symbol.EMPTY:
-        raise ValueError("Invalid action: cell is not empty.")
-    new_state.board[action.row][action.col] = state.turn
-    new_state.turn = Symbol.O if state.turn == Symbol.X else Symbol.X
-    return new_state
+# FUNZIONI "PRIVATE"
 
 
-def actionsPerState(state: TicTacToeState) -> list[TicTacToeAction]:
+def _actionsPerState(state: TicTacToeState) -> list[TicTacToeAction]:
     return [
         TicTacToeAction(row, col)
         for row in range(3)
@@ -171,11 +178,11 @@ def actionsPerState(state: TicTacToeState) -> list[TicTacToeAction]:
     ]
 
 
-def terminalTest(state: TicTacToeState) -> bool:
-    return checkWinner(state) is not None or isDraw(state)
+def _terminalTest(state: TicTacToeState) -> bool:
+    return _checkWinner(state) is not None or _isDraw(state)
 
 
-def checkWinner(state: TicTacToeState) -> Symbol | None:
+def _checkWinner(state: TicTacToeState) -> Symbol | None:
     lines = []
 
     # Righe e colonne
@@ -192,5 +199,14 @@ def checkWinner(state: TicTacToeState) -> Symbol | None:
     return None
 
 
-def isDraw(state: TicTacToeState) -> bool:
+def _isDraw(state: TicTacToeState) -> bool:
     return all(cell != Symbol.EMPTY for row in state.board for cell in row)
+
+
+def _transitionModel(state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
+    new_state = state.copy()
+    if new_state.board[action.row][action.col] != Symbol.EMPTY:
+        raise ValueError("Invalid action: cell is not empty.")
+    new_state.board[action.row][action.col] = state.turn
+    new_state.turn = Symbol.O if state.turn == Symbol.X else Symbol.X
+    return new_state

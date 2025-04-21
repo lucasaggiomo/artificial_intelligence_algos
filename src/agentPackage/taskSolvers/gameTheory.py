@@ -1,46 +1,58 @@
 from typing import Generic
 
-from src.agentPackage.agent import Agent
+from src.agentPackage.action import A
 from src.agentPackage.nodes.gameNode import GameNode
 from src.agentPackage.player import Player
+from src.agentPackage.state import S
 from src.agentPackage.tasks.game import Game
 from src.agentPackage.taskSolvers.taskSolver import TaskSolver
-from src.agentPackage.typeVars import A, S
+from src.agentPackage.user import User
 
 
 class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
-    def __init__(self, players: list[Player[S, A]], game: Game[S, A]):
-        super().__init__(players, game)
-        self.players = players
+    def __init__(self, game: Game[S, A]):
+        super().__init__(game)
         self.game = game
         self.currentState = game.initialState
 
     def startGame(self) -> bool:
         gameOver: bool = False
+        print("STATO INIZIALE:\n")
+        self.game.environment.render()
+        print("Inizia il gioco\n")
         while not gameOver:
-            for player in self.players:
-                # let agent choose next action based on its perception on the environment
-                action = GameTheory[S, A].minimaxAlphaBetaDecision(self.game, player)
+            for player in self.game.agents:
+                print(f"Turno di {player}")
+                # da migliorare: GameTheory non deve sapere se è un User o un Player non User
+                # (il problema è che la logica della scelta per il Player che non è un User si trova in questa classe, GameTheory)
+
+                # SCELTA
+                if isinstance(player, User):
+                    action = player.chooseAction(self.game)
+                else:
+                    action = GameTheory[S, A].minimaxAlphaBetaDecision(self.game, player)
                 if action is None:
                     raise ValueError("action was None")
 
-                # let agent execute action
+                # ESECUZIONE
                 player.executeAction(action, self.game.environment)
                 self.currentState = self.game.environment.getCurrentState()
 
+                # STAMPA
                 self.game.environment.render()
 
+                # CONTEROLLO DI GAME OVER
                 if self.game.terminalTest(self.currentState):
                     gameOver = True
                     break
 
         print("GAME OVER")
-        dict = {player.name: player.utilityFunction(self.currentState) for player in self.players}
+        dict = {player.name: player.getUtility(self.currentState) for player in self.game.agents}
         print("\nUtility:")
         print("\n".join(f"{k}: {v}" for k, v in dict.items()))
 
         utilities = {
-            player.name: player.utilityFunction(self.currentState) for player in self.players
+            player.name: player.getUtility(self.currentState) for player in self.game.agents
         }
 
         # Trova il valore massimo
@@ -66,7 +78,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         # print("\n\n####################################")
         # print("####################################")
         for action in game.getActionsFromState(state):
-            nextState = game.getNextState(state, action)
+            nextState = game.transitionModel(state, action)
             currUtility = GameTheory[S, A].minUtility(game, player, nextState)
             # print(f"{nextState}\nminUtility = {currUtility}\n")
             if currUtility > maxUtility:
@@ -75,7 +87,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
         # print("------------------------------------")
         # print(
-        #     f"[AGENT]: Ho scelto lo stato\n{game.getNextState(state, maxUtilityAction)}\nutility = {maxUtility}"
+        #     f"[AGENT]: Ho scelto lo stato\n{game.transitionModel(state, maxUtilityAction)}\nutility = {maxUtility}"
         # )
         # print("####################################")
         # print("####################################\n\n")
@@ -99,7 +111,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
-                GameTheory[S, A].minUtility(game, player, game.getNextState(state, action)),
+                GameTheory[S, A].minUtility(game, player, game.transitionModel(state, action)),
             )
 
         return maxUtility
@@ -122,7 +134,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
-                GameTheory[S, A].maxUtility(game, player, game.getNextState(state, action)),
+                GameTheory[S, A].maxUtility(game, player, game.transitionModel(state, action)),
             )
 
         return minUtility
@@ -142,7 +154,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
         for action in game.getActionsFromState(state):
             currUtility = GameTheory[S, A].minUtilityAlphaBeta(
-                game, player, game.getNextState(state, action), maxSoFar, minSoFar
+                game, player, game.transitionModel(state, action), maxSoFar, minSoFar
             )
 
             if currUtility > maxUtility:
@@ -165,7 +177,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
             maxUtility = max(
                 maxUtility,
                 GameTheory[S, A].minUtilityAlphaBeta(
-                    game, player, game.getNextState(state, action), maxSoFar, minSoFar
+                    game, player, game.transitionModel(state, action), maxSoFar, minSoFar
                 ),
             )
 
@@ -188,7 +200,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
             minUtility = min(
                 minUtility,
                 GameTheory[S, A].maxUtilityAlphaBeta(
-                    game, player, game.getNextState(state, action), maxSoFar, minSoFar
+                    game, player, game.transitionModel(state, action), maxSoFar, minSoFar
                 ),
             )
 

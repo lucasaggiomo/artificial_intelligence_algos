@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
+from src.agentPackage.action import A
 from src.agentPackage.agent import Agent
-from src.agentPackage.typeVars import A, S
+from src.agentPackage.state import S
 
 
 class Player(Generic[S, A], Agent[S, A], ABC):
@@ -12,7 +13,8 @@ class Player(Generic[S, A], Agent[S, A], ABC):
         self.name = name
 
     @abstractmethod
-    def utilityFunction(self, state: S) -> float:
+    def getUtility(self, state: S) -> float:
+        """Restituisce il valore di utilità relativo al player rispetto allo stato in ingresso"""
         pass
 
     def __str__(self) -> str:

@@ -1,13 +1,18 @@
+from abc import ABC, abstractmethod
 from typing import Generic
 
-from src.agentPackage.customTypes import TransitionModelType
-from src.agentPackage.typeVars import A, S
+from src.agentPackage.action import A
+from src.agentPackage.state import S
 
 
-class Environment(Generic[S, A]):
-    def __init__(self, initialState: S, transitionModel: TransitionModelType[S, A]):
+class Environment(Generic[S, A], ABC):
+    def __init__(self, initialState: S):
         self.currentState = initialState
-        self.transitionModel = transitionModel  # Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo
+
+    @abstractmethod
+    def transitionModel(self, state: S, action: A) -> S:
+        """Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo"""
+        pass
 
     def evolveState(self, action: A) -> S:
         self.currentState = self.transitionModel(self.currentState, action)
