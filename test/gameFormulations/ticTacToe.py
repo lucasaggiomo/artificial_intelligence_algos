@@ -8,6 +8,7 @@ from src.agentPackage.player import Player
 from src.agentPackage.sensor import Sensor
 from src.agentPackage.state import State
 from src.agentPackage.tasks.game import Game
+from src.agentPackage.taskSolvers.gameTheory import GameTheory
 from src.agentPackage.user import User
 
 
@@ -145,6 +146,9 @@ class TicTacToeUser(TicTacToePlayer, User[TicTacToeState, TicTacToeAction]):
                 print(
                     'Input non valido. Inserisci una coppia del tipo "riga, colonna", separati da una virgola'
                 )
+
+
+type TicTacToeGameTheory = GameTheory[TicTacToeState, TicTacToeAction]
 
 
 # FUNZIONI DI COMODO

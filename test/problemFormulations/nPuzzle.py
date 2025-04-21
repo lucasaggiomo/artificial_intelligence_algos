@@ -3,8 +3,13 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from src.agentPackage.action import Action
+from src.agentPackage.agent import Agent
+from src.agentPackage.environment import Environment
 from src.agentPackage.goal import Goal
+from src.agentPackage.sensor import Sensor
 from src.agentPackage.state import State
+from src.agentPackage.tasks.problem import Problem
+from src.agentPackage.taskSolvers.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):
@@ -15,9 +20,7 @@ class NPuzzleState(State):
             raise ValueError(f"Dimension must be positive: {dimension}")
 
         if len(board) != dimension * dimension:
-            raise ValueError(
-                f"Board length {len(board)} does not match {dimension}x{dimension}"
-            )
+            raise ValueError(f"Board length {len(board)} does not match {dimension}x{dimension}")
 
         self.board = board
         self.dimension = dimension
@@ -26,10 +29,7 @@ class NPuzzleState(State):
         output = ""
         for i in range(self.dimension):
             output += (
-                " ".join(
-                    map(str, self.board[i * self.dimension : (i + 1) * self.dimension])
-                )
-                + "\n"
+                " ".join(map(str, self.board[i * self.dimension : (i + 1) * self.dimension])) + "\n"
             )
         return output
 
@@ -58,7 +58,7 @@ class NPuzzleState(State):
         return goalMap
 
 
-class MoveAction(Action):
+class NPuzzleAction(Action):
     RIGHT = 0
     UP = 1
     LEFT = 2
@@ -67,61 +67,112 @@ class MoveAction(Action):
     ACTION_LABELS = {RIGHT: "Right", UP: "Up", LEFT: "Left", DOWN: "Down"}
 
     def __init__(self, value: int):
-        if value not in MoveAction.ACTION_LABELS:
+        if value not in NPuzzleAction.ACTION_LABELS:
             raise ValueError(f"Invalid move: {value}")
         self.value = value
 
     def __str__(self) -> str:
-        return f"{MoveAction.ACTION_LABELS[self.value]}"
+        return f"{NPuzzleAction.ACTION_LABELS[self.value]}"
 
     def __eq__(self, other):
-        return isinstance(other, MoveAction) and self.value == other.value
+        return isinstance(other, NPuzzleAction) and self.value == other.value
 
     def __hash__(self):
         return hash(self.value)
 
 
-def get_valid_actions(state: NPuzzleState) -> list[MoveAction]:
+class NPuzzleEnvironment(Environment[NPuzzleState, NPuzzleAction]):
+    def transitionModel(self, state: NPuzzleState, action: NPuzzleAction) -> NPuzzleState:
+        return _transitionModel(state, action)
+
+
+class NPuzzleGoal(Goal[NPuzzleState]):
+    def __init__(self, stateToReach):
+        self.stateToReach = stateToReach
+
+    def isGoalAchieved(self, state: NPuzzleState) -> bool:
+        return state == self.stateToReach
+
+    def __str__(self):
+        return f"Stato finale:\n{self.stateToReach}\n"
+
+
+class NPuzzleAgent(Agent[NPuzzleState, NPuzzleAction]):
+    def __init__(self):
+        super().__init__(Sensor[NPuzzleState, NPuzzleAction]())
+
+
+class NPuzzleProblem(Problem[NPuzzleState, NPuzzleAction]):
+    def __init__(
+        self,
+        initialState: NPuzzleState,
+        environment: NPuzzleEnvironment,
+        agents: list[NPuzzleAgent],
+        goal: NPuzzleGoal,
+        heuristic: Callable[[NPuzzleState, Goal, dict[int, tuple[int, int]]], int],
+    ):
+        super().__init__(initialState, environment, agents, goal)
+        self.heuristic = heuristic
+        self.goalMap = self.goal.stateToReach.createGoalMap()
+
+    def pathCostFunction(self, state, action):
+        return _pathCostFunction(state, action)
+
+    def heuristicDistFunction(self, state):
+        return _heuristicDistFunction(state, self.goal, self.goalMap, self.heuristic)
+
+    def getActionsFromState(self, state):
+        return _getActionsFromState(state)
+
+    def transitionModel(self, state, action):
+        return _transitionModel(state, action)
+
+
+class NPuzzleProblemSolving(ProblemSolving[NPuzzleState, NPuzzleAction]):
+    pass
+
+
+def _getActionsFromState(state: NPuzzleState) -> list[NPuzzleAction]:
     blank_row, blank_col = state.find_blank()
     valid_actions = []
 
     if blank_col < state.dimension - 1:
-        valid_actions.append(MoveAction(MoveAction.RIGHT))
+        valid_actions.append(NPuzzleAction(NPuzzleAction.RIGHT))
     if blank_row > 0:
-        valid_actions.append(MoveAction(MoveAction.UP))
+        valid_actions.append(NPuzzleAction(NPuzzleAction.UP))
     if blank_col > 0:
-        valid_actions.append(MoveAction(MoveAction.LEFT))
+        valid_actions.append(NPuzzleAction(NPuzzleAction.LEFT))
     if blank_row < state.dimension - 1:
-        valid_actions.append(MoveAction(MoveAction.DOWN))
+        valid_actions.append(NPuzzleAction(NPuzzleAction.DOWN))
 
     return valid_actions
 
 
 actions = [
-    MoveAction(MoveAction.RIGHT),
-    MoveAction(MoveAction.UP),
-    MoveAction(MoveAction.LEFT),
-    MoveAction(MoveAction.DOWN),
+    NPuzzleAction(NPuzzleAction.RIGHT),
+    NPuzzleAction(NPuzzleAction.UP),
+    NPuzzleAction(NPuzzleAction.LEFT),
+    NPuzzleAction(NPuzzleAction.DOWN),
 ]
 
 
-def actionsPerState(state: NPuzzleState) -> list[MoveAction]:
+def actionsPerState(state: NPuzzleState) -> list[NPuzzleAction]:
     return actions
 
 
-def transitionModel(state: NPuzzleState, action: MoveAction) -> NPuzzleState:
+def _transitionModel(state: NPuzzleState, action: NPuzzleAction) -> NPuzzleState:
     blank_index = state.board.index(NPuzzleState.BLANK)
     blank_row, blank_col = divmod(blank_index, state.dimension)
 
     newBoard = list(state.board)
 
-    if action.value == MoveAction.RIGHT and blank_col < state.dimension - 1:
+    if action.value == NPuzzleAction.RIGHT and blank_col < state.dimension - 1:
         swap_index = blank_index + 1
-    elif action.value == MoveAction.UP and blank_row > 0:
+    elif action.value == NPuzzleAction.UP and blank_row > 0:
         swap_index = blank_index - state.dimension
-    elif action.value == MoveAction.LEFT and blank_col > 0:
+    elif action.value == NPuzzleAction.LEFT and blank_col > 0:
         swap_index = blank_index - 1
-    elif action.value == MoveAction.DOWN and blank_row < state.dimension - 1:
+    elif action.value == NPuzzleAction.DOWN and blank_row < state.dimension - 1:
         swap_index = blank_index + state.dimension
     else:
         return state
@@ -135,13 +186,13 @@ def transitionModel(state: NPuzzleState, action: MoveAction) -> NPuzzleState:
 
 
 # Costo del percorso (ogni mossa ha costo 1)
-def pathCostFunction(state: NPuzzleState, action: MoveAction) -> int:
+def _pathCostFunction(state: NPuzzleState, action: NPuzzleAction) -> int:
     return 1
 
 
 # Funzione heuristica: somma delle distanze di Manhattan
 def manhattanDistance(
-    start: NPuzzleState, stop: NPuzzleState, goalMap: dict[int, tuple[int, int]]
+    start: NPuzzleState, goal: NPuzzleGoal, goalMap: dict[int, tuple[int, int]]
 ) -> int:
     total_distance = 0
     dimension = start.dimension
@@ -162,17 +213,13 @@ def manhattanDistance(
     return total_distance
 
 
-def heuristicDistFunction(
+def _heuristicDistFunction(
     state: NPuzzleState,
-    goal: Goal,
+    goal: NPuzzleGoal,
     goalMap: dict[int, tuple[int, int]],
     heuristic: Callable[[NPuzzleState, Goal, dict[int, tuple[int, int]]], int],
 ) -> int:
-    if goal.context is None or not isinstance(goal.context, NPuzzleState):
-        raise NotImplementedError(
-            f"I don't know how to calculate this distance yet, because the goal is not set as a single {NPuzzleState.__name__} destination"
-        )
-    return heuristic(state, goal.context, goalMap)
+    return heuristic(state, goal, goalMap)
 
 
 import random
@@ -187,9 +234,7 @@ def isSolvable(board: tuple[int], dimension: int) -> bool:
         1
         for i, value_i in enumerate(board)
         for value_j in board[i + 1 :]
-        if value_i != NPuzzleState.BLANK
-        and value_j != NPuzzleState.BLANK
-        and value_i > value_j
+        if value_i != NPuzzleState.BLANK and value_j != NPuzzleState.BLANK and value_i > value_j
     )
 
     if dimension % 2 == 1:

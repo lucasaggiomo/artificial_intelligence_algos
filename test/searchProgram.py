@@ -1,26 +1,22 @@
-import test.problemFormulations.nPuzzle as puzzle
 from collections.abc import Callable
-from test.problemFormulations.nPuzzle import (MoveAction, NPuzzleState,
-                                              actionsPerState,
-                                              generateRandomState,
-                                              generateSortedState,
-                                              heuristicDistFunction,
-                                              manhattanDistance,
-                                              pathCostFunction,
-                                              transitionModel)
+from test.problemFormulations.nPuzzle import (
+    NPuzzleAction,
+    NPuzzleAgent,
+    NPuzzleEnvironment,
+    NPuzzleGoal,
+    NPuzzleProblem,
+    NPuzzleProblemSolving,
+    NPuzzleState,
+    generateRandomState,
+    generateSortedState,
+    manhattanDistance,
+)
 from threading import Event, Thread
 
-from src.agentPackage.agent import Agent
-from src.agentPackage.customTypes import (ActionsPerStateType,
-                                          PathFunctionType,
-                                          TransitionModelType)
-from src.agentPackage.environment import Environment
-from src.agentPackage.goal import Goal
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import State
-from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.taskSolvers.problemSolving import (ProblemSolving,
-                                                         SearchAlgorithmType)
+from src.agentPackage.taskSolvers.problemSolving import (
+    ProblemSolving,
+    SearchAlgorithmType,
+)
 
 # import test.problemFormulations.googleMaps as maps
 # from test.problemFormulations.googleMaps import (
@@ -30,9 +26,6 @@ from src.agentPackage.taskSolvers.problemSolving import (ProblemSolving,
 #     actionsPerState,
 #     pathCostFunction,
 #     heuristicDistFunction,
-#     # manhattanDistance,
-#     # generateRandomState,
-#     # generateSortedState,
 # )
 
 
@@ -81,48 +74,24 @@ def runWithTimeout(
 
 def main():
     def reset():
-        global environment, sensor, agent, solver
-
-        environment = Environment(initialState, transitionModel)
-        sensor = Sensor()
-        agent = Agent(sensor)
-        solver = ProblemSolving(agent, problem)
+        environment.currentState = initialState
 
     # Definizione del problema
     # initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
     # goalState = s((s.CLEAN << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
 
     DIMENSION = 3
-    initialState = NPuzzleState((3, 4, 1, 5, 7, 8, 0, 6, 2), 3)
+    # initialState = NPuzzleState((3, 4, 1, 5, 7, 8, 0, 6, 2), 3)
+    initialState = generateRandomState(DIMENSION)
     goalState = generateSortedState(DIMENSION)
-    goalMap = goalState.createGoalMap()
 
     # initialState = CityState('Arad')
     # goalState = CityState('Bucharest')
-    goal = Goal(
-        lambda state: state == goalState, lambda: f"{goalState}", context=goalState
-    )
-
-    environment = Environment(initialState, transitionModel)
-
-    problem = Problem(
-        initialState,
-        environment,
-        actionsPerState,
-        transitionModel,
-        goal,
-        pathCostFunction,
-        heuristicDistFunction=lambda state, goal: heuristicDistFunction(
-            state, goal, goalMap, manhattanDistance
-        ),
-    )
-
-    sensor = Sensor()
-    agent = Agent(sensor)
-    solver = ProblemSolving(agent, problem)
-
-    # risolvi il problema
-    # reset()
+    goal = NPuzzleGoal(goalState)
+    environment = NPuzzleEnvironment(initialState)
+    agent = NPuzzleAgent()
+    problem = NPuzzleProblem(initialState, environment, [agent], goal, manhattanDistance)
+    solver = NPuzzleProblemSolving(agent, problem)
 
     print(f"-------------------------- PROBLEMA --------------------------")
     print(problem)
@@ -147,7 +116,7 @@ def main():
         for algorithm in algorithmsToTry:
             name = capitalize_first_letter(algorithm)
             log(f"{name}:")
-            searchAlgorithm: SearchAlgorithmType = getattr(ProblemSolving, algorithm)
+            searchAlgorithm: SearchAlgorithmType = getattr(solver, algorithm)
             try:
                 from timeit import default_timer as timer
 
