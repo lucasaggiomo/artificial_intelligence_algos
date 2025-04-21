@@ -1,11 +1,18 @@
-from collections.abc import Callable
+# --------------------------------- DEPRECATED ---------------------------------
 
-from .action import Action
-from .state import State
+# from collections.abc import Callable
 
-type PathFunctionType = Callable[[State, Action], int]
-type ActionTableType = dict[State, list[Action]]
-type TransitionModelType = dict[tuple[State, Action], State]
-type SolutionType = tuple[list[Action] | None, int] | None  # None = no solution, (None, int) = cutoff, ([...], int) = solution
+# from src.agentPackage.action import Action
+# from src.agentPackage.state import State
 
-type GoalFunctionType = Callable[[State], bool]
+# from src.agentPackage.goal import Goal
+
+# type PathFunctionType[S: State, A: Action] = Callable[[S, A], float]
+# type HeuristicStateOnlyFunctionType[S: State, A: Action] = Callable[[S], float]
+# type ActionsPerStateType[S: State, A: Action] = Callable[[S], list[A]]
+# type TransitionModelType[S: State, A: Action] = Callable[[S, A], S]
+
+# None = no solution, (None, float) = cutoff, ([...], float) = solution
+
+# type UtilityFunctionType[S: State] = Callable[[S], float]
+# type TerminalTestFunctionType[S: State] = Callable[[S], bool]

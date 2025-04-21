@@ -1,23 +1,25 @@
-from .state import State
-from .action import Action
+from abc import ABC, abstractmethod
+from typing import Generic
 
-from .customTypes import TransitionModelType
+from src.agentPackage.action import A
+from src.agentPackage.state import S
 
-class Environment:
-    state: State
-    transitionModel: TransitionModelType                # associa ad ogni azione, a partire da uno stato, lo stato successivo
-    
-    def __init__(self, initialState: State, transitionModel: TransitionModelType):
-        self.state = initialState
-        self.transitionModel = transitionModel
 
-    def evolveState(self, action: Action) -> State:
-        if (self.state, action) in self.transitionModel:
-            self.state = self.transitionModel[(self.state, action)]
-        return self.state
+class Environment(Generic[S, A], ABC):
+    def __init__(self, initialState: S):
+        self.currentState = initialState
 
-    def getCurrentState(self) -> State:
-        return self.state
+    @abstractmethod
+    def transitionModel(self, state: S, action: A) -> S:
+        """Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo"""
+        pass
+
+    def evolveState(self, action: A) -> S:
+        self.currentState = self.transitionModel(self.currentState, action)
+        return self.currentState
+
+    def getCurrentState(self) -> S:
+        return self.currentState
 
     def render(self):
-        print(f"Ambiente attuale: l'agente si trova in {self.state}")
+        print(f"Ambiente attuale:\n{self.currentState}\n")

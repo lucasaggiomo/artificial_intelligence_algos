@@ -1,22 +1,13 @@
-from .state import State
-from collections.abc import Callable
+from abc import ABC, abstractmethod
+from typing import Generic
 
-from .customTypes import GoalFunctionType
+from src.agentPackage.state import S
 
-class Goal:
+
+class Goal(Generic[S], ABC):
     """Obiettivo da perseguire"""
-    
-    achievedGoalFunction: GoalFunctionType
-    toStr: Callable[[], str]
-    
-    def __init__(self, achievedGoalFunction: GoalFunctionType, toStr: Callable[[], str] = None):
-        self.achievedGoalFunction = achievedGoalFunction
-        self.toStr = toStr
-        
-    def isGoalAchieved(self, state: State) -> bool:
-        return self.achievedGoalFunction(state)
-    
-    def __str__(self) -> str:
-        if self.toStr is None:
-            return super().__str__()
-        return self.toStr()
+
+    @abstractmethod
+    def isGoalAchieved(self, state: S) -> bool:
+        """Dato uno stato, restituisce `True` se ha raggiunto l'obiettivo prefissato, `False` altrimenti"""
+        pass
