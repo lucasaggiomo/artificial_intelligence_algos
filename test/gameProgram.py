@@ -1,25 +1,39 @@
+import sys
 from test.gameFormulations.ticTacToe import (
     Symbol,
     TicTacToeAction,
     TicTacToeEnvironment,
     TicTacToeGame,
+    TicTacToeGameTheory,
     TicTacToePlayer,
+    TicTacToePlayerAI,
     TicTacToeState,
-    TicTacToeUser,
     generateInitialState,
 )
 
-from src.agentPackage.taskSolvers.gameTheory import GameTheory
 
-initialState = generateInitialState()
+def getFromArgvOrDefault(index: int, default) -> int:
+    try:
+        return int(sys.argv[index])
+    except:
+        return default
+
+
+DIMENSION = getFromArgvOrDefault(1, 3)
+REQUIRED = getFromArgvOrDefault(2, 3)
+
+initialState = generateInitialState(DIMENSION)
 environment = TicTacToeEnvironment(initialState)
 
 # player1 è X perché tocca prima a X
-player1 = TicTacToePlayer(Symbol.X)
-player2 = TicTacToeUser(Symbol.O)
+player1 = TicTacToePlayerAI(Symbol.X, TicTacToeGameTheory.minimaxAlphaBetaDecision, 2, REQUIRED)
+player2 = TicTacToePlayerAI(Symbol.O, TicTacToeGameTheory.minimaxAlphaBetaDecision, 3, REQUIRED)
+# player2 = TicTacToePlayer(Symbol.O, printOptions=False)
 
-game = TicTacToeGame(initialState, environment, [player1, player2])
+game = TicTacToeGame(initialState, environment, [player1, player2], REQUIRED)
 
-solver = GameTheory[TicTacToeState, TicTacToeAction](game)
+solver = TicTacToeGameTheory(game)
 
 solver.startGame()
+if hasattr(TicTacToePlayerAI.getUtility, "cache_info"):
+    print(TicTacToePlayerAI.getUtility.cache_info())

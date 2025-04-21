@@ -7,14 +7,17 @@ from src.agentPackage.state import S
 
 
 class Player(Generic[S, A], Agent[S, A], ABC):
-    @abstractmethod
-    def __init__(self, sensor, name):
+    def __init__(self, sensor, name: str):
         super().__init__(sensor)
         self.name = name
 
     @abstractmethod
     def getUtility(self, state: S) -> float:
         """Restituisce il valore di utilità relativo al player rispetto allo stato in ingresso"""
+        pass
+
+    @abstractmethod
+    def chooseAction(self, game: "Game[S, A]"):  # type: ignore
         pass
 
     def __str__(self) -> str:
