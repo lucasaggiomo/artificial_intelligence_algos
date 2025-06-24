@@ -1,22 +1,22 @@
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Sequence
 
-from agentPackage.action import TAction
+from agentPackage.action import Action
 from agentPackage.agent import Agent
 from agentPackage.environment import Environment
 from agentPackage.goal import Goal
-from agentPackage.state import TState
+from agentPackage.state import State
 from agentPackage.tasks.task import Task
 
 
-class Problem(Generic[TState, TAction], Task[TState, TAction, Agent[TState, TAction]], ABC):
+class Problem(Task, ABC):
     @abstractmethod
     def __init__(
         self,
-        initialState: TState,
-        environment: Environment[TState, TAction],
-        agents: list[Agent[TState, TAction]],
-        goal: Goal[TState],
+        initialState: State,
+        environment: Environment,
+        agents: Sequence[Agent],
+        goal: Goal,
     ):
         """
         **initialState**: *State*                                     - stato di partenza\\
@@ -28,18 +28,18 @@ class Problem(Generic[TState, TAction], Task[TState, TAction, Agent[TState, TAct
         self.goal = goal
 
     @abstractmethod
-    def pathCostFunction(self, state: TState, action: TAction) -> float:
+    def pathCostFunction(self, state: State, action: Action) -> float:
         """Funzione del costo di un percorso, dato stato e azione"""
         pass
 
     @abstractmethod
-    def heuristicDistFunction(self, state: TState) -> float:
+    def heuristicDistFunction(self, state: State) -> float:
         """Funzione heuristica della distanza di uno stato dalla/e destinazione/i"""
         # prima era così:
         # self.heuristicDistFunction = lambda state: heuristicDistFunction(state, self.goal)
         pass
 
-    def isGoalAchieved(self, state: TState) -> bool:
+    def isGoalAchieved(self, state: State) -> bool:
         return self.goal.isGoalAchieved(state)
 
     def __str__(self) -> str:

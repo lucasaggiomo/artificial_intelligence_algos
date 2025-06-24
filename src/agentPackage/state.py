@@ -1,7 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
-
-TState = TypeVar("TState", bound="State")
 
 
 class State(ABC):

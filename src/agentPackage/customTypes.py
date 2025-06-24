@@ -9,7 +9,7 @@
 
 # type PathFunctionType[S: State, A: Action] = Callable[[S, A], float]
 # type HeuristicStateOnlyFunctionType[S: State, A: Action] = Callable[[S], float]
-# type ActionsPerStateType[S: State, A: Action] = Callable[[S], list[A]]
+# type ActionsPerStateType[S: State, A: Action] = Callable[[S], Sequence[A]]
 # type TransitionModelType[S: State, A: Action] = Callable[[S, A], S]
 
 # None = no solution, (None, float) = cutoff, ([...], float) = solution

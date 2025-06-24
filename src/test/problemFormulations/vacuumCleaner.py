@@ -99,7 +99,7 @@ def putBitInPosition(bitmap: int, bit: int, position: int) -> int:
     return (bitmap & ~(1 << position)) | (bit << position)
 
 
-def getNextState(state: VacuumState, action: VacuumAction) -> VacuumState:
+def getNexState(state: VacuumState, action: VacuumAction) -> VacuumState:
     return VacuumState(getNextBitmap(state.bitmap, action))
 
 
@@ -135,7 +135,7 @@ actions = getAllActions()
 actionsPerState = {state: actions for state in states}
 
 transitionModel = {
-    (state, action): getNextState(state, action)
+    (state, action): getNexState(state, action)
     for state in states
     for action in actions
 }

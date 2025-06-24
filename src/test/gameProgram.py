@@ -1,13 +1,11 @@
 import sys
 from test.gameFormulations.ticTacToe import (
     Symbol,
-    TicTacToeAction,
     TicTacToeEnvironment,
     TicTacToeGame,
     TicTacToeGameTheory,
     TicTacToePlayer,
     TicTacToePlayerAI,
-    TicTacToeState,
     generateInitialState,
 )
 
@@ -31,7 +29,7 @@ def main():
     player2 = TicTacToePlayerAI(Symbol.O, TicTacToeGameTheory.minimaxAlphaBetaDecision, 3, REQUIRED)
     # player2 = TicTacToePlayer(Symbol.O, printOptions=False)
 
-    game = TicTacToeGame(initialState, environment, [player1, player2], REQUIRED)
+    game = TicTacToeGame(initialState, environment, [player1, player2], REQUIRED) # type: ignore
 
     solver = TicTacToeGameTheory(game)
 

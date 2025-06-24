@@ -1,19 +1,22 @@
 from collections.abc import Callable
 from test.problemFormulations.nPuzzle import (
-    NPuzzleAction,
     NPuzzleAgent,
     NPuzzleEnvironment,
     NPuzzleGoal,
     NPuzzleProblem,
     NPuzzleProblemSolving,
-    NPuzzleState,
     generateRandomState,
     generateSortedState,
     manhattanDistance,
 )
 from threading import Event, Thread
+from typing import Optional
 
-from agentPackage.taskSolvers.problemSolving import ProblemSolving, SearchAlgorithmType
+from agentPackage.taskSolvers.problemSolving import (
+    ProblemSolving,
+    SearchAlgorithmType,
+    SolutionType,
+)
 
 # import test.problemFormulations.googleMaps as maps
 # from test.problemFormulations.googleMaps import (
@@ -41,10 +44,11 @@ def runWithTimeout(
     problem,
     timeout: float,
     log: Callable[[str], None],
-):
+) -> SolutionType:
     global name
 
     solution = None
+
     stopEvent = Event()
 
     def search():
@@ -70,8 +74,10 @@ def runWithTimeout(
 
 
 def main():
+    global name
+
     def reset():
-        environment.currentState = initialState
+        environment.currenState = initialState
 
     # Definizione del problema
     # initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
@@ -129,8 +135,15 @@ def main():
                     )
                 elif solution is ProblemSolving.NO_SOLUTIONS:
                     log("Non ci sono soluzioni")
+                elif solution is None:
+                    print("Solution era None")
+                    return
                 else:
                     actions, cost = solution
+                    if actions == None:
+                        print("Actiosn era None")
+                        return
+
                     log(f"Soluzione trovata (Costo {cost})")
                     for i in range(len(actions)):
                         log(f"{f'{i+1}.':<5}\t{actions[i]}", logToStdout=False)

@@ -6,7 +6,7 @@ from agentPackage.state import State
 
 
 class CityState(State):
-    def __init__(self, name: int):
+    def __init__(self, name: str):
         self.name = name
 
     def __str__(self) -> str:
@@ -230,7 +230,7 @@ def transitionModel(state: CityState, action: MoveAction) -> CityState:
 
 
 # Funzione di costo del percorso
-def pathCostFunction(state: CityState, action: MoveAction) -> int:
+def pathCostFunction(state: CityState, action: MoveAction) -> int | float:
     return costMatrix[state.name].get(action.to_city.name, INF)
 
 

@@ -1,39 +1,45 @@
 from __future__ import annotations
 
-from typing import Generic, Self
+from typing import Optional, cast
 
-from agentPackage.action import TAction
+from agentPackage.action import Action
 from agentPackage.nodes.node import Node
-from agentPackage.player import Player
-from agentPackage.state import TState
+from agentPackage.state import State
 from agentPackage.tasks.game import Game
 
 
-class GameNode(Generic[TState, TAction], Node[TState, TAction, Game[TState, TAction]]):
+class GameNode(Node):
     def __init__(
         self,
-        parent: Self,
-        state: TState,
-        action: TAction,
+        parent: Optional[GameNode],
+        state: State,
+        action: Optional[Action],
         utilities: list[float],
     ):
         """
-        **parent**: *Node*                        - il nodo padre (None se è la radice)
+        **parent**: *Optional[GameNode]*          - il nodo padre (None se è la radice)
         **children**: *list[Node]*                - i nodi figli associati
         **state**: *State*                        - lo stato associato al nodo
-        **action**: *Action*                      - l'azione che ha portato a generare il nodo
+        **action**: *Optional[Action]*            - l'azione che ha portato a generare il nodo
         **utilities**: *list[float]*              - valore di utilità del nodo (stato) per ogni player
         """
         super().__init__(parent, state, action)
-        self.utilityies = utilities
+        self.utilities = utilities
 
-    def createChild(self, newState: TState, action: TAction, game: Game[TState, TAction]) -> Self:
-        return GameNode[TState, TAction](
+    def createChild(self, newState: State, action: Action, game: Game) -> GameNode:
+        return GameNode(
             parent=self,
             action=action,
             state=newState,
-            utilities=[player.getUtility(newState) for player in game.agents],
+            utilities=[player.getUtility(newState) for player in game.players],
         )
+
+    # solo per type checking
+    def childNode(self, game: Game, action: Action) -> GameNode:
+        return cast(GameNode, super().childNode(game, action))
+
+    def addChild(self, child: GameNode) -> None:
+        return super().addChild(child)
 
     # operators (by utility)
     def comparisonValue(self):

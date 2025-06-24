@@ -1,11 +1,18 @@
-from typing import Generic
+from abc import ABC, abstractmethod
 
-from agentPackage.action import TAction
 from agentPackage.environment import Environment
 from agentPackage.perception import Perception
-from agentPackage.state import TState
+from agentPackage.state import State
 
 
-class Sensor(Generic[TState, TAction]):
-    def percept(self, environment: Environment[TState, TAction]) -> Perception:
-        return environment.getCurrentState()
+class Sensor(ABC):
+    @abstractmethod
+    def percept(self, environment: Environment) -> Perception:
+        pass
+
+
+class StateSensor(Sensor):
+    """Sensore semplice che restituisce lo stato corrente dell'ambiente"""
+
+    def percept(self, environment: Environment) -> State:
+        return environment.getCurrenState()

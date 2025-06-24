@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Generic
 
-from agentPackage.state import TState
+from agentPackage.state import State
 
 
-class Goal(Generic[TState], ABC):
+class Goal(ABC):
     """Obiettivo da perseguire"""
 
     @abstractmethod
-    def isGoalAchieved(self, state: TState) -> bool:
+    def isGoalAchieved(self, state: State) -> bool:
         """Dato uno stato, restituisce `True` se ha raggiunto l'obiettivo prefissato, `False` altrimenti"""
         pass

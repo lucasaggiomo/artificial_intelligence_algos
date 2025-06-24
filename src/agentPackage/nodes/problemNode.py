@@ -1,27 +1,28 @@
 from __future__ import annotations
 
-from typing import Generic, Self
+from typing import Optional, cast
 
-from agentPackage.action import TAction
+from agentPackage.action import Action
 from agentPackage.nodes.node import Node
-from agentPackage.state import TState
+from agentPackage.state import State
 from agentPackage.tasks.problem import Problem
+from agentPackage.tasks.task import Task
 
 
-class ProblemNode(Generic[TState, TAction], Node[TState, TAction, Problem[TState, TAction]]):
+class ProblemNode(Node):
     def __init__(
         self,
-        parent: Self,
-        state: TState,
-        action: TAction,
+        parent: Optional[ProblemNode],
+        state: State,
+        action: Optional[Action],
         pathCost: float,
         heuristicDist: float,
     ):
         """
-        **parent**: *Node*                        - il nodo padre (None se è la radice)
+        **parent**: *Optional[ProblemNode]*       - il nodo padre (None se è la radice)
         **children**: *list[Node]*                - i nodi figli associati
         **state**: *State*                        - lo stato associato al nodo
-        **action**: *Action*                      - l'azione che ha portato a generare il nodo
+        **action**: *Optional[Action]*            - l'azione che ha portato a generare il nodo
         **pathCost**: *float*                     - costo per raggiungere il nodo a partire dalla radice
         **heuristicDist**: *float*                - distanza heuristica dalla/e destinazione/i
         """
@@ -29,14 +30,21 @@ class ProblemNode(Generic[TState, TAction], Node[TState, TAction, Problem[TState
         self.pathCost = pathCost
         self.heuristicDist = heuristicDist
 
-    def createChild(self, newState: TState, action: TAction, problem: Problem[TState, TAction]) -> Self:
-        return ProblemNode[TState, TAction](
+    def createChild(self, newState: State, action: Action, problem: Problem) -> ProblemNode:
+        return ProblemNode(
             parent=self,
             action=action,
             state=newState,
             pathCost=self.pathCost + problem.pathCostFunction(self.state, action),
             heuristicDist=problem.heuristicDistFunction(newState),
         )
+
+    # solo per type checking
+    def childNode(self, problem: Problem, action: Action) -> ProblemNode:
+        return cast(ProblemNode, super().childNode(problem, action))
+
+    def addChild(self, child: ProblemNode) -> None:
+        return super().addChild(child)
 
     # operators (by pathCost)
     def comparisonValue(self):

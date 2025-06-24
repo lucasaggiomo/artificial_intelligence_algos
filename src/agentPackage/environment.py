@@ -1,25 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import Generic
 
-from agentPackage.action import TAction
-from agentPackage.state import TState
+from agentPackage.action import Action
+from agentPackage.state import State
 
 
-class Environment(Generic[TState, TAction], ABC):
-    def __init__(self, initialState: TState):
-        self.currentState = initialState
+class Environment(ABC):
+    def __init__(self, initialState: State):
+        self.currenState = initialState
 
     @abstractmethod
-    def transitionModel(self, state: TState, action: TAction) -> TState:
+    def transitionModel(self, state: State, action: Action) -> State:
         """Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo"""
         pass
 
-    def evolveState(self, action: TAction) -> TState:
-        self.currentState = self.transitionModel(self.currentState, action)
-        return self.currentState
+    def evolveState(self, action: Action) -> State:
+        self.currenState = self.transitionModel(self.currenState, action)
+        return self.currenState
 
-    def getCurrentState(self) -> TState:
-        return self.currentState
+    def getCurrenState(self) -> State:
+        return self.currenState
 
     def render(self):
-        print(f"Ambiente attuale:\n{self.currentState}\n")
+        print(f"Ambiente attuale:\n{self.currenState}\n")

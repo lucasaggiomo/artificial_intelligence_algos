@@ -1,7 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
-
-TAction = TypeVar("TAction", bound="Action")
 
 
 class Action(ABC):
