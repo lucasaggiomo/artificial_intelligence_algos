@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from src.agentPackage.action import Action
-from src.agentPackage.agent import Agent
-from src.agentPackage.environment import Environment
-from src.agentPackage.goal import Goal
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import State
-from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.taskSolvers.problemSolving import ProblemSolving
+from agentPackage.action import Action
+from agentPackage.agent import Agent
+from agentPackage.environment import Environment
+from agentPackage.goal import Goal
+from agentPackage.sensor import Sensor
+from agentPackage.state import State
+from agentPackage.tasks.problem import Problem
+from agentPackage.taskSolvers.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):

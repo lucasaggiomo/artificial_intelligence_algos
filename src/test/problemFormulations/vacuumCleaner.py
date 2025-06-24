@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from src.agentPackage.action import Action
-from src.agentPackage.state import State
+from agentPackage.action import Action
+from agentPackage.state import State
 
 
 class VacuumState(State):

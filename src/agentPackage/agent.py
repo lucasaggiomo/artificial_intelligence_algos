@@ -1,22 +1,22 @@
 from typing import Generic, TypeVar
 
-from src.agentPackage.action import A
-from src.agentPackage.environment import Environment
-from src.agentPackage.perception import Perception
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import S
+from agentPackage.action import TAction
+from agentPackage.environment import Environment
+from agentPackage.perception import Perception
+from agentPackage.sensor import Sensor
+from agentPackage.state import TState
 
-AG = TypeVar("AG", bound="Agent")
+TAgent = TypeVar("TAgent", bound="Agent")
 
 
-class Agent(Generic[S, A]):
+class Agent(Generic[TState, TAction]):
     def __init__(self, sensor: Sensor):
         self.sensor = sensor
 
-    def percept(self, environment: Environment[S, A]) -> Perception:
+    def percept(self, environment: Environment[TState, TAction]) -> Perception:
         """Restituisce una **Perception** a partire da un **environment**, utilizzando il suo **self.sensor**"""
         return self.sensor.percept(environment)
 
-    def executeAction(self, action: A, environment: Environment[S, A]):
+    def executeAction(self, action: TAction, environment: Environment[TState, TAction]):
         """Esegue l'azione **action** sull'ambiente **environment**"""
         environment.evolveState(action)

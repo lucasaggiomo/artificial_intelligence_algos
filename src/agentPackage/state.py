@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-S = TypeVar("S", bound="State")
+TState = TypeVar("TState", bound="State")
 
 
 class State(ABC):
@@ -24,7 +24,3 @@ class State(ABC):
 
     def __repr__(self) -> str:
         return self.__str__()
-
-    @abstractmethod
-    def __eq__(self, other) -> bool:
-        pass

@@ -13,10 +13,7 @@ from test.problemFormulations.nPuzzle import (
 )
 from threading import Event, Thread
 
-from src.agentPackage.taskSolvers.problemSolving import (
-    ProblemSolving,
-    SearchAlgorithmType,
-)
+from agentPackage.taskSolvers.problemSolving import ProblemSolving, SearchAlgorithmType
 
 # import test.problemFormulations.googleMaps as maps
 # from test.problemFormulations.googleMaps import (

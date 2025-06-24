@@ -2,10 +2,10 @@
 
 # from collections.abc import Callable
 
-# from src.agentPackage.action import Action
-# from src.agentPackage.state import State
+# from agentPackage.action import Action
+# from agentPackage.state import State
 
-# from src.agentPackage.goal import Goal
+# from agentPackage.goal import Goal
 
 # type PathFunctionType[S: State, A: Action] = Callable[[S, A], float]
 # type HeuristicStateOnlyFunctionType[S: State, A: Action] = Callable[[S], float]

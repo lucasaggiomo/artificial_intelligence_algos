@@ -6,6 +6,4 @@ Alcuni algoritmi del corso di Elementi di Intelligenza Artificiale, basati sul l
 La cartella (package) `src` contiene i package e i moduli in cui sono implementati gli algoritmi. In particolare contiene il package `agentPackage`.
 
 La cartella (package) `test` contiene i package e i moduli in cui si effettuano i test di tali algoritmi.
-In particolare è possibile eseguire i test eseguendo il modulo test.searchProgram con `python -m test.searchProgram` eseguito dalla cartella *root* della repository.
-
-La cartella `uml` contiene i diagrammi UML di alcuni package della repository, realizzati con `py2puml`.
+In particolare è possibile eseguire i test eseguendo il modulo test.searchProgram con `python -m test.searchProgram` eseguito dalla cartella [src](./src) della repository.

@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from src.agentPackage.action import A
-from src.agentPackage.agent import Agent
-from src.agentPackage.player import Player
-from src.agentPackage.state import S
-from src.agentPackage.tasks.game import Game
-from src.agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType
+from agentPackage.action import TAction
+from agentPackage.agent import Agent
+from agentPackage.player import Player
+from agentPackage.state import TState
+from agentPackage.tasks.game import Game
+from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType
 
 
-class PlayerAI(Generic[S, A], Player[S, A], ABC):
+class PlayerAI(Generic[TState, TAction], Player[TState, TAction], ABC):
     def __init__(
         self,
         sensor,
@@ -22,7 +22,7 @@ class PlayerAI(Generic[S, A], Player[S, A], ABC):
         self.decisionAlgorithm = decisionAlgorithm
         self.limit = limit
 
-    def chooseAction(self, game: Game[S, A]):
+    def chooseAction(self, game: Game[TState, TAction]):
         return self.decisionAlgorithm(game, self, self.limit)
 
     def __str__(self) -> str:

@@ -3,18 +3,18 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, Self
 
-from src.agentPackage.action import A
-from src.agentPackage.state import S
-from src.agentPackage.tasks.task import T
+from agentPackage.action import TAction
+from agentPackage.state import TState
+from agentPackage.tasks.task import TTask
 
 
-class Node(Generic[S, A, T], ABC):
+class Node(Generic[TState, TAction, TTask], ABC):
     @abstractmethod
     def __init__(
         self,
         parent: Self,
-        state: S,
-        action: A,
+        state: TState,
+        action: TAction,
     ):
         """
         **parent**: *Self*                        - il nodo padre (None se è la radice)
@@ -31,7 +31,7 @@ class Node(Generic[S, A, T], ABC):
         self.children.append(child)
         child.parent = self
 
-    def childNode(self, task: T, action: A) -> Self:
+    def childNode(self, task: TTask, action: TAction) -> Self:
         """
         Crea un nodo figlio usando il metodo astratto `createChild` che ogni sottoclasse deve implementare.
         """
@@ -44,7 +44,7 @@ class Node(Generic[S, A, T], ABC):
         return newNode
 
     @abstractmethod
-    def createChild(self, newState: S, action: A, task: T) -> Self:
+    def createChild(self, newState: TState, action: TAction, task: TTask) -> Self:
         """
         Metodo che ogni sottoclasse deve implementare per restituire una nuova istanza del proprio tipo.
         """

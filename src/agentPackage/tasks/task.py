@@ -3,17 +3,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-from src.agentPackage.action import A
-from src.agentPackage.agent import AG
-from src.agentPackage.environment import Environment
-from src.agentPackage.state import S
+from agentPackage.action import TAction
+from agentPackage.agent import TAgent
+from agentPackage.environment import Environment
+from agentPackage.state import TState
 
-T = TypeVar("T", bound="Task", covariant=True)
+TTask = TypeVar("TTask", bound="Task", covariant=True)
 
 
-class Task(Generic[S, A, AG], ABC):
+class Task(Generic[TState, TAction, TAgent], ABC):
     @abstractmethod
-    def __init__(self, initialState: S, environment: Environment[S, A], agents: list[AG]):
+    def __init__(self, initialState: TState, environment: Environment[TState, TAction], agents: list[TAgent]):
         """
         **initialState**: *State*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\
@@ -24,7 +24,7 @@ class Task(Generic[S, A, AG], ABC):
         self.agents = agents
 
     @abstractmethod
-    def getActionsFromState(self, state: S) -> list[A]:
+    def getActionsFromState(self, state: TState) -> list[TAction]:
         """
         **ACTIONS** nel libro\n
         Restituisce l'insieme delle azioni possibili da un certo stato
@@ -32,7 +32,7 @@ class Task(Generic[S, A, AG], ABC):
         pass
 
     @abstractmethod
-    def transitionModel(self, state: S, action: A) -> S:
+    def transitionModel(self, state: TState, action: TAction) -> TState:
         """
         **RESULT** nel libro\n
         Restituisce lo stato ottenuto eseguendo un'azione a partire da un certo stato

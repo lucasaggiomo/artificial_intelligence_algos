@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from src.agentPackage.action import Action
-from src.agentPackage.goal import Goal
-from src.agentPackage.state import State
+from agentPackage.action import Action
+from agentPackage.goal import Goal
+from agentPackage.state import State
 
 
 class CityState(State):

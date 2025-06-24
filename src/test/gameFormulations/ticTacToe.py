@@ -4,14 +4,14 @@ from abc import ABC, abstractmethod
 from enum import StrEnum
 from functools import lru_cache
 
-from src.agentPackage.action import Action
-from src.agentPackage.environment import Environment
-from src.agentPackage.player import Player
-from src.agentPackage.playerAI import PlayerAI
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import State
-from src.agentPackage.tasks.game import Game
-from src.agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
+from agentPackage.action import Action
+from agentPackage.environment import Environment
+from agentPackage.player import Player
+from agentPackage.playerAI import PlayerAI
+from agentPackage.sensor import Sensor
+from agentPackage.state import State
+from agentPackage.tasks.game import Game
+from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
 
 
 class Symbol(StrEnum):

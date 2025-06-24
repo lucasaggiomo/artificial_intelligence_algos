@@ -1,24 +1,24 @@
 import random
-from typing import Callable, Generic
+from typing import Callable, Generic, Optional
 
-from src.agentPackage.action import A, Action
-from src.agentPackage.nodes.gameNode import GameNode
-from src.agentPackage.player import Player
-from src.agentPackage.state import S, State
-from src.agentPackage.tasks.game import Game
-from src.agentPackage.taskSolvers.taskSolver import TaskSolver
+from agentPackage.action import Action, TAction
+from agentPackage.nodes.gameNode import GameNode
+from agentPackage.player import Player
+from agentPackage.state import State, TState
+from agentPackage.tasks.game import Game
+from agentPackage.taskSolvers.taskSolver import TaskSolver
 
 type DecisionAlgorithmType[S: State, A: Action] = Callable[[Game[S, A], Player[S, A], float], A]
 
 
-class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
-    def __init__(self, game: Game[S, A]):
+class GameTheory(Generic[TState, TAction], TaskSolver[TState, TAction, Game[TState, TAction]]):
+    def __init__(self, game: Game[TState, TAction]):
         super().__init__(game)
         self.game = game
         self.currentState = game.initialState
 
-    def startGame(self) -> bool:
-        gameOver: bool = False
+    def startGame(self):
+        gameOver = False
         print("STATO INIZIALE:\n")
         self.game.environment.render()
         print("Inizia il gioco\n")
@@ -68,8 +68,11 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minimaxDecision(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
-    ) -> A:
+        game: Game[TState, TAction],
+        player: Player[TState, TAction],
+        state: TState,
+        limit: float = float("+inf"),
+    ) -> Optional[TAction]:
         """
         Sceglie l'azione da effettuare a partire dallo stato **state** con algoritmo *minimax*
         """
@@ -81,7 +84,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         # print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
-            currUtility = GameTheory[S, A].minUtility(game, player, nextState, limit)
+            currUtility = GameTheory[TState, TAction].minUtility(game, player, nextState, limit)
             # print(f"{nextState}\nminUtility = {currUtility}\n")
             if currUtility > maxUtility:
                 maxUtility = currUtility
@@ -97,7 +100,10 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def maxUtility(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
+        game: Game[TState, TAction],
+        player: Player[TState, TAction],
+        state: TState,
+        limit: float = float("+inf"),
     ) -> float:
         """
         Per ogni stato possibile raggiungibile da **state**, restituisce l'utilità maggiore tra i minUtility (ovvero tra i casi peggiori).
@@ -115,7 +121,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
-                GameTheory[S, A].minUtility(
+                GameTheory[TState, TAction].minUtility(
                     game, player, game.transitionModel(state, action), limit - 1
                 ),
             )
@@ -124,7 +130,10 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minUtility(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
+        game: Game[TState, TAction],
+        player: Player[TState, TAction],
+        state: TState,
+        limit: float = float("+inf"),
     ) -> float:
         """
         Per ogni stato possibile raggiungibile da **state**, restituisce l'utilità minore tra i maxUtility (ovvero tra i casi migliori).
@@ -142,7 +151,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
-                GameTheory[S, A].maxUtility(
+                GameTheory[TState, TAction].maxUtility(
                     game, player, game.transitionModel(state, action), limit - 1
                 ),
             )
@@ -151,8 +160,8 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minimaxAlphaBetaDecision(
-        game: Game[S, A], player: Player[S, A], limit: float = float("+inf")
-    ) -> A:
+        game: Game[TState, TAction], player: Player[TState, TAction], limit: float = float("+inf")
+    ) -> Optional[TAction]:
         """
         Sceglie l'azione da effettuare a partire dallo stato **state** con algoritmo *minimax* con la *potatura alpha-beta* (ovvero non espande nodi superflui)
         """
@@ -165,7 +174,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         minSoFar = float("+inf")
 
         for action in game.getActionsFromState(state):
-            currUtility = GameTheory[S, A].minUtilityAlphaBeta(
+            currUtility = GameTheory[TState, TAction].minUtilityAlphaBeta(
                 game, player, game.transitionModel(state, action), maxSoFar, minSoFar, limit - 1
             )
 
@@ -181,9 +190,9 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def maxUtilityAlphaBeta(
-        game: Game[S, A],
-        player: Player[S, A],
-        state: S,
+        game: Game[TState, TAction],
+        player: Player[TState, TAction],
+        state: TState,
         maxSoFar: float,
         minSoFar: float,
         limit: float = float("+inf"),
@@ -195,7 +204,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
-                GameTheory[S, A].minUtilityAlphaBeta(
+                GameTheory[TState, TAction].minUtilityAlphaBeta(
                     game,
                     player,
                     game.transitionModel(state, action),
@@ -214,9 +223,9 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minUtilityAlphaBeta(
-        game: Game[S, A],
-        player: Player[S, A],
-        state: S,
+        game: Game[TState, TAction],
+        player: Player[TState, TAction],
+        state: TState,
         maxSoFar: float,
         minSoFar: float,
         limit: float = float("+inf"),
@@ -228,7 +237,7 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
-                GameTheory[S, A].maxUtilityAlphaBeta(
+                GameTheory[TState, TAction].maxUtilityAlphaBeta(
                     game,
                     player,
                     game.transitionModel(state, action),
