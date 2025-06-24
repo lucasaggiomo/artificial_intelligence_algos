@@ -14,7 +14,7 @@ class PlayerAI(Player, ABC):
         decisionAlgorithm: DecisionAlgorithmType,
         limit: float = float("+inf"),
     ):
-        super().__init__(sensor, name)
+        Player.__init__(self, sensor, name)
         self.name = name
         self.decisionAlgorithm = decisionAlgorithm
         self.limit = limit

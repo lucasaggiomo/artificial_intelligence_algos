@@ -77,7 +77,7 @@ def main():
     global name
 
     def reset():
-        environment.currenState = initialState
+        environment.currentState = initialState
 
     # Definizione del problema
     # initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))

@@ -122,7 +122,7 @@ class NPuzzleProblem(Problem):
     def heuristicDistFunction(self, state: NPuzzleState):
         return _heuristicDistFunction(state, self.goal, self.goalMap, self.heuristic)
 
-    def geActionsFromState(self, state: NPuzzleState):
+    def getActionsFromState(self, state: NPuzzleState):
         return _geActionsFromState(state)
 
     def transitionModel(self, state: NPuzzleState, action: NPuzzleAction):

@@ -13,7 +13,7 @@ class GameTheory(TaskSolver):
     def __init__(self, game: Game):
         super().__init__(game)
         self.game = game
-        self.currenState = game.initialState
+        self.currentState = game.initialState
 
     def startGame(self):
         gameOver = False
@@ -24,33 +24,38 @@ class GameTheory(TaskSolver):
         while not gameOver:
             turn += 1
             for player in self.game.players:
+                print("#######################################################à")
                 print(f"Turno di {player}")
 
                 # SCELTA
+                print("SCELTA DEL PLAYER: " + player.name)
                 action = player.chooseAction(self.game)
                 if action is None:
                     raise ValueError("action was None")
 
+                print("AZIONE SCELTA: " + str(action))
+                input("\nPremi invio per eseguirla\n")
+
                 # ESECUZIONE
                 player.executeAction(action, self.game.environment)
-                self.currenState = self.game.environment.getCurrenState()
+                self.currentState = self.game.environment.getCurrentState()
 
                 # STAMPA
                 self.game.environment.render()
 
                 # CONTEROLLO DI GAME OVER
-                if self.game.terminalTest(self.currenState):
+                if self.game.terminalTest(self.currentState):
                     gameOver = True
                     break
 
         print("GAME OVER")
 
-        dict = {player.name: player.getUtility(self.currenState) for player in self.game.players}
+        dict = {player.name: player.getUtility(self.currentState) for player in self.game.players}
         print("\nUtility:")
         print("\n".join(f"{k}: {v}" for k, v in dict.items()))
 
         utilities = {
-            player.name: player.getUtility(self.currenState) for player in self.game.players
+            player.name: player.getUtility(self.currentState) for player in self.game.players
         }
 
         # Trova il valore massimo
@@ -80,10 +85,10 @@ class GameTheory(TaskSolver):
         # tra tutte le azioni possibili dallo stato state, sceglie quella con massima minUtility (ovvero per massimizzare l'utility peggiore)
         # print("\n\n####################################")
         # print("####################################")
-        for action in game.geActionsFromState(state):
-            nexState = game.transitionModel(state, action)
-            currUtility = GameTheory.minUtility(game, player, nexState, limit)
-            # print(f"{nexState}\nminUtility = {currUtility}\n")
+        for action in game.getActionsFromState(state):
+            nextState = game.transitionModel(state, action)
+            currUtility = GameTheory.minUtility(game, player, nextState, limit)
+            # print(f"{nextState}\nminUtility = {currUtility}\n")
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
@@ -116,7 +121,7 @@ class GameTheory(TaskSolver):
             return player.getUtility(state)
 
         maxUtility = float("-inf")
-        for action in game.geActionsFromState(state):
+        for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
                 GameTheory.minUtility(game, player, game.transitionModel(state, action), limit - 1),
@@ -144,7 +149,7 @@ class GameTheory(TaskSolver):
             return player.getUtility(state)
 
         minUtility = float("+inf")
-        for action in game.geActionsFromState(state):
+        for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
                 GameTheory.maxUtility(game, player, game.transitionModel(state, action), limit - 1),
@@ -167,7 +172,7 @@ class GameTheory(TaskSolver):
         maxSoFar = float("-inf")
         minSoFar = float("+inf")
 
-        for action in game.geActionsFromState(state):
+        for action in game.getActionsFromState(state):
             currUtility = GameTheory.minUtilityAlphaBeta(
                 game, player, game.transitionModel(state, action), maxSoFar, minSoFar, limit - 1
             )
@@ -178,7 +183,7 @@ class GameTheory(TaskSolver):
 
             maxSoFar = max(maxSoFar, maxUtility)
 
-        print(f"[{player.name}]: Max utility = {maxUtility}")
+        print(f"[{player.name}]: Max utility = {maxUtility} con la mossa [[{maxUtilityAction}]]")
 
         return maxUtilityAction
 
@@ -195,7 +200,7 @@ class GameTheory(TaskSolver):
             return player.getUtility(state)
 
         maxUtility = float("-inf")
-        for action in game.geActionsFromState(state):
+        for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
                 GameTheory.minUtilityAlphaBeta(
@@ -228,7 +233,7 @@ class GameTheory(TaskSolver):
             return player.getUtility(state)
 
         minUtility = float("+inf")
-        for action in game.geActionsFromState(state):
+        for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
                 GameTheory.maxUtilityAlphaBeta(

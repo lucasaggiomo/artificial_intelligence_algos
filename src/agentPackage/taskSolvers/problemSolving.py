@@ -61,7 +61,7 @@ class ProblemSolving(TaskSolver):
             self.problem.environment.render()
             for action in actions:
                 self.agent.executeAction(action, self.problem.environment)
-                self.currenState = self.problem.environment.getCurrenState()
+                self.currenState = self.problem.environment.getCurrentState()
 
     @staticmethod
     def backtrackSolution(node: ProblemNode) -> SolutionType:
@@ -106,7 +106,7 @@ class ProblemSolving(TaskSolver):
             # quindi, se lo stato associato non è stato già esplorato,
             # verifica se ha raggiunto l'obiettivo e in tal caso restituisce la soluzione;
             # altrimenti aggiunge il nodo alla frontiera
-            for action in problem.geActionsFromState(node.state):
+            for action in problem.getActionsFromState(node.state):
                 child = node.childNode(problem, action)
                 if child.state not in explored:
                     if problem.isGoalAchieved(child.state):
@@ -146,7 +146,7 @@ class ProblemSolving(TaskSolver):
             # quindi, se lo stato associato non è stato già esplorato,
             # verifica se ha raggiunto l'obiettivo e in tal caso restituisce la soluzione;
             # altrimenti aggiunge il nodo alla frontiera
-            for action in problem.geActionsFromState(node.state):
+            for action in problem.getActionsFromState(node.state):
                 child = node.childNode(problem, action)
                 if child.state not in explored:
                     if problem.isGoalAchieved(child.state):
@@ -180,7 +180,7 @@ class ProblemSolving(TaskSolver):
 
         explored.add(node.state)
 
-        for action in problem.geActionsFromState(node.state):
+        for action in problem.getActionsFromState(node.state):
             child = node.childNode(problem, action)
 
             if child.state not in explored:
@@ -230,7 +230,7 @@ class ProblemSolving(TaskSolver):
 
         cutoff_occurred = False
 
-        for action in problem.geActionsFromState(node.state):
+        for action in problem.getActionsFromState(node.state):
             child = node.childNode(problem, action)
 
             if child.state not in explored:
@@ -303,7 +303,7 @@ class ProblemSolving(TaskSolver):
 
             # per ogni azione possibile dallo stato corrente, la espande (cioè aggiunge alla frontiera)
             # se non già presente (oppure se il percorso trovato è meno costoso)
-            for action in problem.geActionsFromState(node.state):
+            for action in problem.getActionsFromState(node.state):
                 child = node.childNode(problem, action)
 
                 # ignora se già esplorato

@@ -2,11 +2,12 @@ from abc import ABC, abstractmethod
 
 from agentPackage.action import Action
 from agentPackage.agent import Agent
+from agentPackage.sensor import Sensor
 from agentPackage.state import State
 
 
 class Player(Agent, ABC):
-    def __init__(self, sensor, name: str):
+    def __init__(self, sensor: Sensor, name: str):
         super().__init__(sensor)
         self.name = name
 

@@ -1,3 +1,4 @@
+import textwrap
 from abc import ABC, abstractmethod
 
 from agentPackage.action import Action
@@ -6,19 +7,20 @@ from agentPackage.state import State
 
 class Environment(ABC):
     def __init__(self, initialState: State):
-        self.currenState = initialState
+        self.currentState = initialState
 
     @abstractmethod
     def transitionModel(self, state: State, action: Action) -> State:
-        """Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo"""
+        """Associa ad ogni azione, a partire da uno stato di partenza, lo stato successivo"""
         pass
 
     def evolveState(self, action: Action) -> State:
-        self.currenState = self.transitionModel(self.currenState, action)
-        return self.currenState
+        """Evolve lo stato corrente, eseguendo l'azione richiesta"""
+        self.currentState = self.transitionModel(self.currentState, action)
+        return self.currentState
 
-    def getCurrenState(self) -> State:
-        return self.currenState
+    def getCurrentState(self) -> State:
+        return self.currentState
 
     def render(self):
-        print(f"Ambiente attuale:\n{self.currenState}\n")
+        print(f"Ambiente attuale:\n{textwrap.indent(str(self.currentState), "\t")}\n")

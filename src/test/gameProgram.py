@@ -29,7 +29,7 @@ def main():
     player2 = TicTacToePlayerAI(Symbol.O, TicTacToeGameTheory.minimaxAlphaBetaDecision, 3, REQUIRED)
     # player2 = TicTacToePlayer(Symbol.O, printOptions=False)
 
-    game = TicTacToeGame(initialState, environment, [player1, player2], REQUIRED) # type: ignore
+    game = TicTacToeGame(initialState, environment, [player1, player2], REQUIRED)
 
     solver = TicTacToeGameTheory(game)
 

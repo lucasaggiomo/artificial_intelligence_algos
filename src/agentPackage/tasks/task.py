@@ -22,7 +22,7 @@ class Task(ABC):
         self.agents = agents
 
     @abstractmethod
-    def geActionsFromState(self, state: State) -> list[Action]:
+    def getActionsFromState(self, state: State) -> list[Action]:
         """
         **ACTIONS** nel libro\n
         Restituisce l'insieme delle azioni possibili da un certo stato

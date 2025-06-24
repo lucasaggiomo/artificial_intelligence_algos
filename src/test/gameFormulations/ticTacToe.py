@@ -104,7 +104,7 @@ class TicTacToeGame(Game):
     def terminalTest(self, state: TicTacToeState) -> bool:
         return _terminalTest(state, self.required)  # global function
 
-    def geActionsFromState(self, state: TicTacToeState) -> list[TicTacToeAction]:
+    def getActionsFromState(self, state: TicTacToeState) -> list[TicTacToeAction]:
         return _actionsPerState(state)  # global function
 
     def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
@@ -160,7 +160,7 @@ class TicTacToePlayer(Player):
         return _getUtility(state, self.symbol, self.required)
 
 
-class TicTacToePlayerAI(PlayerAI):
+class TicTacToePlayerAI(PlayerAI, TicTacToePlayer):
     def __init__(
         self,
         symbol: Symbol,
@@ -168,8 +168,8 @@ class TicTacToePlayerAI(PlayerAI):
         limit: float = float("+inf"),
         required: int = 3,
     ):
-        super().__init__(StateSensor(), symbol.name, decisionAlgorithm, limit)
-        self.symbol = symbol
+        PlayerAI.__init__(self, StateSensor(), symbol.name, decisionAlgorithm, limit)
+        TicTacToePlayer.__init__(self, symbol, printOptions=False)
         self.required = required
 
     # @lru_cache(maxsize=100000)
