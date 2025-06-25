@@ -1,3 +1,5 @@
+import textwrap
+import threading as th
 from typing import Callable, Optional
 
 from agentPackage.action import Action
@@ -10,10 +12,11 @@ type DecisionAlgorithmType = Callable[[Game, Player, float], Optional[Action]]
 
 
 class GameTheory(TaskSolver):
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, waitTurnEvent: th.Event):
         super().__init__(game)
         self.game = game
         self.currentState = game.initialState
+        self.waitTurnEvent = waitTurnEvent
 
     def startGame(self):
         gameOver = False
@@ -24,7 +27,10 @@ class GameTheory(TaskSolver):
         while not gameOver:
             turn += 1
             for player in self.game.players:
-                print("#######################################################à")
+                self.waitTurnEvent.wait()
+                self.waitTurnEvent.clear()
+
+                print("#######################################################")
                 print(f"Turno di {player}")
 
                 # SCELTA
@@ -34,7 +40,6 @@ class GameTheory(TaskSolver):
                     raise ValueError("action was None")
 
                 print("AZIONE SCELTA: " + str(action))
-                input("\nPremi invio per eseguirla\n")
 
                 # ESECUZIONE
                 player.executeAction(action, self.game.environment)
@@ -73,7 +78,6 @@ class GameTheory(TaskSolver):
     def minimaxDecision(
         game: Game,
         player: Player,
-        state: State,
         limit: float = float("+inf"),
     ) -> Optional[Action]:
         """
@@ -82,23 +86,25 @@ class GameTheory(TaskSolver):
         maxUtility = float("-inf")
         maxUtilityAction = None
 
+        state = player.percept(game.environment)
+
         # tra tutte le azioni possibili dallo stato state, sceglie quella con massima minUtility (ovvero per massimizzare l'utility peggiore)
-        # print("\n\n####################################")
-        # print("####################################")
+        print("\n\n####################################")
+        print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtility(game, player, nextState, limit)
-            # print(f"{nextState}\nminUtility = {currUtility}\n")
+            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            print("------------------------------------")
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
 
-        # print("------------------------------------")
-        # print(
-        #     f"[AGENT]: Ho scelto lo stato\n{game.transitionModel(state, maxUtilityAction)}\nutility = {maxUtility}"
-        # )
-        # print("####################################")
-        # print("####################################\n\n")
+        print(
+            f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
+        )
+        print("####################################")
+        print("####################################\n\n")
         return maxUtilityAction
 
     @staticmethod
@@ -159,7 +165,9 @@ class GameTheory(TaskSolver):
 
     @staticmethod
     def minimaxAlphaBetaDecision(
-        game: Game, player: Player, limit: float = float("+inf")
+        game: Game,
+        player: Player,
+        limit: float = float("+inf"),
     ) -> Optional[Action]:
         """
         Sceglie l'azione da effettuare a partire dallo stato **state** con algoritmo *minimax* con la *potatura alpha-beta* (ovvero non espande nodi superflui)
@@ -172,18 +180,26 @@ class GameTheory(TaskSolver):
         maxSoFar = float("-inf")
         minSoFar = float("+inf")
 
+        print("\n\n####################################")
+        print("####################################")
         for action in game.getActionsFromState(state):
+            nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtilityAlphaBeta(
-                game, player, game.transitionModel(state, action), maxSoFar, minSoFar, limit - 1
+                game, player, nextState, maxSoFar, minSoFar, limit - 1
             )
+            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            print("------------------------------------")
 
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
 
             maxSoFar = max(maxSoFar, maxUtility)
-
-        print(f"[{player.name}]: Max utility = {maxUtility} con la mossa [[{maxUtilityAction}]]")
+        print(
+            f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
+        )
+        print("####################################")
+        print("####################################\n\n")
 
         return maxUtilityAction
 

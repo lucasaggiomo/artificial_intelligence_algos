@@ -13,6 +13,7 @@ from test.gameFormulations.pokemon.mossa import (
 )
 from test.gameFormulations.pokemon.statistiche import Statistica, Statistiche
 from test.gameFormulations.pokemon.tipo import Tipo, get_moltiplicatore
+from typing import Callable, Optional, cast
 
 from agentPackage.action import Action
 from agentPackage.environment import Environment
@@ -40,7 +41,7 @@ class Allenatore(Elemento):
         )
 
     def __str__(self) -> str:
-        return f"{self.name}\n" + textwrap.indent(str(self.pokemon), "\t")
+        return f"{self.name} [\n{textwrap.indent(str(self.pokemon), "\t")}\n]"
 
 
 class PokemonPlayer(Player, Allenatore):
@@ -137,13 +138,24 @@ class Pokemon(Elemento):
             self.mosse.copy(),
         )
 
-    def infliggiDanno(self, danno: int) -> None:
+    def infliggiDanno(self, danno: int) -> int:
+        """
+        Infligge il danno e restituisce il danno totale inflitto
+        (in generale è diverso dal danno in input, in quanto i PS non possono scendere sotto 0)
+        """
+
         vitaCorrente = self.statistiche[Statistica.PUNTI_SALUTE]
+
         vitaCorrente -= danno
+        dannoInflitto = danno
+
         if vitaCorrente < 0:
+            dannoInflitto += vitaCorrente
             vitaCorrente = 0
 
         self.statistiche[Statistica.PUNTI_SALUTE] = vitaCorrente
+
+        return dannoInflitto
 
     def applicaEffetto(self, mossa: MossaStato) -> None:
         """Applica l'effetto di stato (per ora solo BUFF o DEBUFF)"""
@@ -179,7 +191,7 @@ class Pokemon(Elemento):
         )
 
     def __str__(self) -> str:
-        return f"{self.name}\n\tTipi = {[tipo.name for tipo in self.tipi]}\n\tStatistiche = {self.statistiche}\n"
+        return f"{self.name}\n\tTipi = {[tipo.name for tipo in self.tipi]}\n\tStatistiche = {self.statistiche}"
 
 
 # class Campo:
@@ -217,12 +229,14 @@ class PokemonState(State):
         allenatore1: Allenatore,
         allenatore2: Allenatore,
         # campo: Campo,
-        turno: int = 1,  # 1 o 2
+        turno: int = 0,  # 1 o 2,
+        azione_precedente: Optional[PokemonAction] = None,  # solo per debug
     ):
         self.allenatore1 = allenatore1
         self.allenatore2 = allenatore2
         # self.campo = campo
         self.turno = turno
+        self.azione_precedente = azione_precedente
 
     def copy(self) -> PokemonState:
         return PokemonState(
@@ -241,9 +255,6 @@ class PokemonState(State):
     @property
     def pokemon2(self):
         return self.allenatore2.pokemon
-
-    def commutaTurno(self):
-        self.turno = 1 if self.turno == 2 else 2
 
     def __hash__(self) -> int:
         prime = 31
@@ -265,9 +276,10 @@ class PokemonState(State):
 
     def __str__(self) -> str:
         return (
+            f"Mossa precedente: [\n{textwrap.indent(str(self.azione_precedente), '\t')}\n]\n"
             f"Allenatore1: {self.allenatore1}\n"
             f"Allenatore2: {self.allenatore2}\n"
-            f"Turno di: {self.allenatore1.name if self.turno == 1 else self.allenatore2.name}"
+            f"Turno di: {self.allenatore1.name if self.turno % 2 == 0 else self.allenatore2.name}"
         )
         # Campo: {self.campo}
 
@@ -293,16 +305,31 @@ class PokemonAction(Action):
         self.pokemon = pokemon
         self.mossa = mossa
         self.target = target
+        self.danno = -1
+        self.moltiplicatorePuro = 1
+        self.moltiplicatoreTotale = 1
 
     def calcolaDanno(self) -> int:
+        """
+        STUB per semplificare, il danno è PARI alla potenza della mossa.
+        Non tiene conto dei moltiplicatori in base ai tipi, né delle statistiche dei pokemon.
+        """
+        if not isinstance(self.mossa, MossaOffensiva):
+            self.danno = 0
+            return 0
+
+        return self.mossa.potenza
+
+    def calcolaDanno2(self) -> int:
         """Questa funzione calcola il danno solo se la mossa riferita da questa azione è una mossa offensiva"""
         if not isinstance(self.mossa, MossaOffensiva):
+            self.danno = 0
             return 0
 
         # CALCOLO DANNO PURO
 
         # livello del pokemon attaccante
-        livello = 50  # il livello è stato omesso per semplicità, viene assunto pari ad 1
+        livello = 50  # il livello è stato omesso per semplicità, viene assunto pari ad 50
 
         # in base alla categoria di mossa offensiva, cambia la statistica offensiva e difensiva da guardare (fisica o speciale)
         match self.mossa.categoria:
@@ -319,10 +346,13 @@ class PokemonAction(Action):
         moltiplicatore = 1.0
         for tipoTarget in self.target.tipi:
             moltiplicatore *= get_moltiplicatore(self.mossa.tipo, tipoTarget)
+        self.moltiplicatorePuro = moltiplicatore
 
         # il danno incrementato se il pokemon attaccante è dello stesso tipo della mossa
         if self.mossa.tipo in self.pokemon.tipi:
             moltiplicatore *= 1.5
+
+        self.moltiplicatoreTotale = moltiplicatore
 
         # calcolo del danno arrotondato per difetto
         danno = int(danno * moltiplicatore)
@@ -332,11 +362,14 @@ class PokemonAction(Action):
         # - 1 altrimenti
 
         if moltiplicatore == 0:
+            self.danno = 0
             return 0
 
         if danno == 0:
+            self.danno = 1
             return 1
 
+        self.danno = danno
         return danno
 
     def __hash__(self) -> int:
@@ -344,6 +377,9 @@ class PokemonAction(Action):
         result = 0
         result = result * prime + hash(self.pokemon)
         result = result * prime + hash(self.mossa)
+        result = result * prime + hash(self.danno)
+        result = result * prime + hash(self.moltiplicatorePuro)
+        result = result * prime + hash(self.moltiplicatoreTotale)
         return result
 
     def __eq__(self, other) -> bool:
@@ -351,21 +387,71 @@ class PokemonAction(Action):
             isinstance(other, PokemonAction)
             and self.pokemon == other.pokemon
             and self.mossa == other.mossa
+            and self.danno == other.danno
+            and self.moltiplicatorePuro == other.moltiplicatorePuro
+            and self.moltiplicatoreTotale == other.moltiplicatoreTotale
         )
 
     def __str__(self) -> str:
-        return f"{self.pokemon.name} usa {self.mossa}!"
+        str = f"{self.pokemon.name} usa {self.mossa}!\n"
+        if isinstance(self.mossa, MossaOffensiva):
+            str += f"Infligge {self.danno} PS!\n"
+        elif isinstance(self.mossa, MossaStato):
+            if self.mossa.categoria == CategoriaMossaStato.MOSSA_BUFF:
+                str += "Modifica il suo stato con le seguenti statistiche aumentate: [\n"
+                str += textwrap.indent(
+                    "\n".join(
+                        f"{stat.name}: {incr}"
+                        for stat, incr in self.mossa.modificheStatistiche.items()
+                    ),
+                    "\t- ",
+                )
+                str += "\n]\n"
+            else:
+                str += (
+                    f"Modifica lo stato dell'avversario con le seguenti statistiche diminuite: [\n"
+                )
+                str += textwrap.indent(
+                    "\n".join(
+                        f"{stat.name}: {decr}"
+                        for stat, decr in self.mossa.modificheStatistiche.items()
+                    ),
+                    "\t- ",
+                )
+                str += "\n]\n"
+        str += _getTextFromMoltiplicatore(self.moltiplicatorePuro)
+        str += f"(moltiplicatore totale: {self.moltiplicatoreTotale})"
+        return str
 
     def __repr__(self) -> str:
         return self.__str__()
 
 
+def _getTextFromMoltiplicatore(moltiplicatore: float) -> str:
+    if moltiplicatore < 1:
+        return "Non è molto efficace...\n"
+    elif moltiplicatore > 1:
+        return "È superefficace!\n"
+    return ""
+
+
 class PokemonEnvironment(Environment):
     def __init__(self, initialState: PokemonState):
         super().__init__(initialState)
+        self.currentState = initialState
+        self.updateCallback: Optional[
+            Callable[[PokemonState, PokemonAction, PokemonState], None]
+        ] = None
 
     def transitionModel(self, state: PokemonState, action: PokemonAction) -> PokemonState:
         return _transitionModel(state, action)
+
+    def evolveState(self, action: PokemonAction) -> PokemonState:
+        oldState = self.currentState
+        super().evolveState(action)
+        if self.updateCallback:
+            self.updateCallback(oldState, action, self.currentState)
+        return self.currentState
 
 
 class PokemonGame(Game):
@@ -380,13 +466,18 @@ class PokemonGame(Game):
         #     pokemon1=self.allenatore1.getFirstPokemon(),
         #     pokemon2=self.allenatore2.getFirstPokemon(),
         # )
-        initialState = PokemonState(
+        self.initialState = PokemonState(
             self.allenatore1,
             self.allenatore2,
             # self.campo,
         )
-        self.environment = PokemonEnvironment(initialState)
-        super().__init__(initialState, self.environment, [player1, player2])
+        self.environment = PokemonEnvironment(self.initialState)
+        super().__init__(self.initialState, self.environment, [player1, player2])
+
+    def setUpdateCallback(
+        self, updateCallback: Callable[[PokemonState, PokemonAction, PokemonState], None]
+    ):
+        self.environment.updateCallback = updateCallback
 
     def terminalTest(self, state: PokemonState) -> bool:
         # print(">>>Verifico se qualcuno ha vinto...")
@@ -395,7 +486,7 @@ class PokemonGame(Game):
         return state.pokemon1.isKO() or state.pokemon2.isKO()
 
     def getActionsFromState(self, state: PokemonState) -> list[PokemonAction]:
-        if state.turno == 1:
+        if state.turno % 2 == 0:
             mosse = state.pokemon1.mosse
             sottoscritto = state.pokemon1
             avversario = state.pokemon2
@@ -449,13 +540,14 @@ def _transitionModel(state: PokemonState, action: PokemonAction) -> PokemonState
     if isinstance(action.mossa, MossaOffensiva):
         danno = action.calcolaDanno()
 
-        # effettua il danno sul pokemon target nel nuovoStato
-        targetCopy.infliggiDanno(danno)
+        # effettua il danno sul pokemon target nel nuovoStato e aggiorna il danno dell'azione
+        action.danno = targetCopy.infliggiDanno(danno)
 
     elif isinstance(action.mossa, MossaStato):
         # effettua la mossa stato sul pokemon target nel nuovoStato
         targetCopy.applicaEffetto(action.mossa)
 
-    nuovoStato.commutaTurno()
+    nuovoStato.azione_precedente = action
+    nuovoStato.turno += 1
 
     return nuovoStato
