@@ -5,7 +5,12 @@ from test.gameFormulations.pokemon.mossa import (
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.pokemon import Pokemon, PokemonGame, PokemonPlayerAI
+from test.gameFormulations.pokemon.pokemon import (
+    Pokemon,
+    PokemonGame,
+    PokemonPlayerAI,
+    PokemonPlayerUmano,
+)
 from test.gameFormulations.pokemon.pokemonUI import BattleGUI
 from test.gameFormulations.pokemon.statistiche import Statistica, Statistiche
 from test.gameFormulations.pokemon.tipo import Tipo
@@ -18,20 +23,14 @@ def main():
     azione = MossaOffensiva(
         "Azione",
         Tipo.NORMALE,
-        50,
+        20,
         CategoriaMossaOffensiva.MOSSA_FISICA,
     )
     breccia = MossaOffensiva(
         "Breccia",
         Tipo.LOTTA,
-        40,
+        25,
         CategoriaMossaOffensiva.MOSSA_SPECIALE,
-    )
-    graffio = MossaOffensiva(
-        "Graffio",
-        Tipo.NORMALE,
-        35,
-        CategoriaMossaOffensiva.MOSSA_FISICA,
     )
     cura = MossaStato(
         "Cura",
@@ -39,35 +38,45 @@ def main():
         categoria=CategoriaMossaStato.MOSSA_BUFF,
         modificheStatistiche={Statistica.PUNTI_SALUTE: 40},
     )
+    cuordileone = MossaStato(
+        "Cuordileone",
+        Tipo.NORMALE,
+        categoria=CategoriaMossaStato.MOSSA_BUFF,
+        modificheStatistiche={Statistica.ATTACCO: 20},
+    )
+    prepotenza = MossaStato(
+        "Prepotenza",
+        Tipo.NORMALE,
+        categoria=CategoriaMossaStato.MOSSA_DEBUFF,
+        modificheStatistiche={Statistica.DIFESA: -10},
+    )
 
     # Pokemon
     pikachu = Pokemon(
         "Pikachu",
         {Tipo.ELETTRO},
-        Statistiche(punti_salute=100, attacco_speciale=30),
-        {azione, breccia, cura},
+        Statistiche(punti_salute=80),
+        {azione, cuordileone, cura},
     )
     bulbasaur = Pokemon(
         "Bulbasaur",
         {Tipo.NORMALE},
-        Statistiche(punti_salute=200),
-        {graffio, cura},
+        Statistiche(punti_salute=100),
+        {breccia, prepotenza},
     )
 
     # allenatori (player)
-    player1 = PokemonPlayerAI(
+    player1 = PokemonPlayerUmano(
         "Allenatore1",
         1,
         pikachu,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=5,
     )
     player2 = PokemonPlayerAI(
         "Allenatore2",
         2,
         bulbasaur,
         GameTheory.minimaxAlphaBetaDecision,
-        limit=5,
+        limit=4,
     )
 
     # battaglia pokemon

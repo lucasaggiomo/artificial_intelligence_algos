@@ -18,11 +18,11 @@ class Statistiche:
     def __init__(
         self,
         punti_salute: int,
-        attacco: int = 20,
-        difesa: int = 20,
-        attacco_speciale: int = 20,
-        difesa_speciale: int = 20,
-        velocita: int = 20,
+        attacco: int = 0,
+        difesa: int = 0,
+        attacco_speciale: int = 0,
+        difesa_speciale: int = 0,
+        velocita: int = 0,
     ):
         self._stats = {
             Statistica.PUNTI_SALUTE: punti_salute,
@@ -59,6 +59,6 @@ class Statistiche:
 
     def __eq__(self, other) -> bool:
         return isinstance(other, Statistiche) and self._stats == other._stats
-    
+
     def __str__(self) -> str:
-        return f"PS: {self._stats[Statistica.PUNTI_SALUTE]}"
+        return "\n".join(f"{stat.name}: {value}" for stat, value in self._stats.items())

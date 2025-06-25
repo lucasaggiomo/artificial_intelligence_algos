@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import textwrap
+import threading as th
 from abc import ABC
 from enum import StrEnum
 from test.gameFormulations.pokemon.elemento import Elemento
@@ -43,6 +44,20 @@ class Allenatore(Elemento):
     def __str__(self) -> str:
         return f"{self.name} [\n{textwrap.indent(str(self.pokemon), "\t")}\n]"
 
+    def __hash__(self) -> int:
+        prime = 31
+        result = 0
+        result = result * prime + hash(self.name)
+        result = result * prime + hash(self.pokemon)
+        return result
+
+    def __eq__(self, other) -> bool:
+        return (
+            isinstance(other, Allenatore)
+            and self.name == other.name
+            and self.pokemon == other.pokemon
+        )
+
 
 class PokemonPlayer(Player, Allenatore):
     """
@@ -72,20 +87,83 @@ class PokemonPlayer(Player, Allenatore):
 
         # verifica se qualcuno è K.O.
         if ps_mio == 0 and ps_avversario > 0:
+            print("Utility finale: " + str(-1.0))
             return -1.0  # sconfitta
         elif ps_avversario == 0 and ps_mio > 0:
+            print("Utility finale: " + str(1.0))
             return 1.0  # vittoria
         elif ps_mio == 0 and ps_avversario == 0:
+            print("Utility finale: " + str(0.0))
             return 0.0  # pareggio
 
         # normalizza sulla somma totale degli HP
         total_ps = ps_mio + ps_avversario
 
         utility = (ps_mio - ps_avversario) / total_ps
+
+        # penalizza il punteggio all'avanzare dei turni,
+        # prediligendo una vittoria più rapida
+        decay = 0.99**state.turno
+        utility *= decay
+        print("Utility finale: " + str(utility))
+        global stampatoUtility
+        stampatoUtility = True
         return utility
 
-    # def chooseAction(self, game: PokemonGame) -> PokemonAction:
-    #     return None
+
+class PokemonPlayerUmano(PokemonPlayer):
+    def __init__(self, name: str, numero: int, pokemon: Pokemon):
+        PokemonPlayer.__init__(self, StateSensor(), name, numero, pokemon)
+        self.chosenMove = None
+        self._moveSelectedEvent = th.Event()
+        self._registerMoveCallback: Optional[Callable[[Pokemon, Callable[[Mossa], None]], None]] = (
+            None
+        )
+
+    def registerMoveCallback(self, callback: Callable[[Pokemon, Callable[[Mossa], None]], None]):
+        """
+        La GUI userà questo per registrare una funzione che permette a questo player di mostrare le mosse
+        e fornire una callback da chiamare una volta che l'utente ha scelto.
+        """
+        self._registerMoveCallback = callback
+
+    def chooseAction(self, game: PokemonGame) -> PokemonAction:
+        # azzera lo stato precedente
+        self.mossaScelta = None
+        self._moveSelectedEvent.clear()
+
+        if self._registerMoveCallback:
+            # mostra le mosse e passa la callback che riceverà la mossa scelta
+            self._registerMoveCallback(self.pokemon, self._onMoveSelected)
+        else:
+            raise RuntimeError("Non c'è una callback per mostrare le mosse del player")
+
+        # attende che l'utente selezioni una mossa
+        self._moveSelectedEvent.wait()
+
+        # genera l'azione capendo chi sia il target (per semplicità lo assume dal tipo di mossa anziché chiederlo all'utente)
+        if self.numero == 1:
+            pokemonAvversario = game.allenatore2.pokemon
+        else:
+            pokemonAvversario = game.allenatore1.pokemon
+
+        if isinstance(self.mossaScelta, MossaOffensiva):
+            target = pokemonAvversario
+        elif isinstance(self.mossaScelta, MossaStato):
+            if self.mossaScelta.categoria == CategoriaMossaStato.MOSSA_BUFF:
+                target = self.pokemon
+            else:
+                target = pokemonAvversario
+
+        azione = PokemonAction(self.pokemon, self.mossaScelta, target)  # type: ignore
+        print(f"Danno calcolato: {azione.calcolaDanno()}, target = {target.name}")
+
+        # restituisce l'azione scelta
+        return azione
+
+    def _onMoveSelected(self, mossa: Mossa):
+        self.mossaScelta = mossa
+        self._moveSelectedEvent.set()
 
 
 class PokemonPlayerAI(
@@ -118,8 +196,8 @@ class Pokemon(Elemento):
         name: str,
         tipi: set[Tipo],
         statistiche: Statistiche,
-        # allenatore: Optional[Allenatore],
         mosse: set[Mossa],
+        maxPS: int = -1,
     ):
         if len(tipi) == 0:
             raise ValueError("Un pokemon deve avere almeno un tipo")
@@ -127,8 +205,12 @@ class Pokemon(Elemento):
         super().__init__(name)
         self.tipi = tipi
         self.statistiche = statistiche
-        # self.allenatore = allenatore
         self.mosse = mosse
+
+        if maxPS >= 0:
+            self.maxPS = maxPS
+        else:
+            self.maxPS = self.statistiche[Statistica.PUNTI_SALUTE]
 
     def copy(self) -> Pokemon:
         return Pokemon(
@@ -136,6 +218,7 @@ class Pokemon(Elemento):
             self.tipi.copy(),
             self.statistiche.copy(),
             self.mosse.copy(),
+            self.maxPS,
         )
 
     def infliggiDanno(self, danno: int) -> int:
@@ -160,7 +243,13 @@ class Pokemon(Elemento):
     def applicaEffetto(self, mossa: MossaStato) -> None:
         """Applica l'effetto di stato (per ora solo BUFF o DEBUFF)"""
         for statistica, valore in mossa.modificheStatistiche.items():
-            self.statistiche[statistica] += valore
+            # aumenta o decrementa le statistiche, considerando che i PS non possono scendere oltre 0 e salire oltre self.maxPS
+            if statistica == Statistica.PUNTI_SALUTE:
+                currPS = self.statistiche[statistica]
+                newPS = max(0, min(self.maxPS, currPS + valore))
+                self.statistiche[statistica] = newPS
+            else:
+                self.statistiche[statistica] += valore
 
     def isKO(self) -> bool:
         return not self.isAlive()
@@ -177,7 +266,6 @@ class Pokemon(Elemento):
         result = result * prime + hash(self.name)
         for tipo in self.tipi:
             result = result * prime + hash(tipo)
-        # result = result * prime + hash(self.allenatore)
         result = result * prime + hash(self.statistiche)
         return result
 
@@ -186,12 +274,15 @@ class Pokemon(Elemento):
             isinstance(other, Pokemon)
             and self.name == other.name
             and self.tipi == other.tipi
-            # and self.allenatore == other.allenatore
             and self.statistiche == other.statistiche
         )
 
     def __str__(self) -> str:
-        return f"{self.name}\n\tTipi = {[tipo.name for tipo in self.tipi]}\n\tStatistiche = {self.statistiche}"
+        return (
+            f"{self.name}\n\tTipi = {[tipo.name for tipo in self.tipi]}\n\tStatistiche = [\n"
+            f"{textwrap.indent("\n".join(str(self.statistiche).splitlines()),"\t- ")}"
+            "\n]"
+        )
 
 
 # class Campo:
@@ -256,13 +347,15 @@ class PokemonState(State):
     def pokemon2(self):
         return self.allenatore2.pokemon
 
+    # il turno NON fa parte di ciò che caratterizza lo stato (quindi due stati sono considerati uguali anche se hanno turni diversi ma il resto identico)
+    # questa scelta è volta ad intercettare stati già visitati negli algoritmi
     def __hash__(self) -> int:
         prime = 31
         result = 0
         result = result * prime + hash(self.allenatore1)
         result = result * prime + hash(self.allenatore2)
         # result = result * prime + hash(self.campo)
-        result = result * prime + hash(self.turno)
+        # result = result * prime + hash(self.turno)
         return result
 
     def __eq__(self, other: object) -> bool:
@@ -271,7 +364,7 @@ class PokemonState(State):
             and self.allenatore1 == other.allenatore1
             and self.allenatore2 == other.allenatore2
             # and self.campo == other.campo
-            and self.turno == other.turno
+            # and self.turno == other.turno
         )
 
     def __str__(self) -> str:
@@ -318,7 +411,15 @@ class PokemonAction(Action):
             self.danno = 0
             return 0
 
-        return self.mossa.potenza
+        stringa = f"Calcolo del danno con pokemon:\n{self.pokemon}\nverso{self.target}\ncon la mossa {self.mossa}"
+        print(textwrap.indent(stringa, "\t----"))
+
+        self.danno = (
+            self.mossa.potenza
+            + self.pokemon.statistiche[Statistica.ATTACCO]
+            - self.target.statistiche[Statistica.DIFESA]
+        )
+        return self.danno
 
     def calcolaDanno2(self) -> int:
         """Questa funzione calcola il danno solo se la mossa riferita da questa azione è una mossa offensiva"""
@@ -480,9 +581,9 @@ class PokemonGame(Game):
         self.environment.updateCallback = updateCallback
 
     def terminalTest(self, state: PokemonState) -> bool:
-        # print(">>>Verifico se qualcuno ha vinto...")
-        # pokemon1Ko = state.pokemon1.isKO()
-        # pokemon2Ko = state.pokemon2.isKO()
+        pokemon1Ko = state.pokemon1.isKO()
+        pokemon2Ko = state.pokemon2.isKO()
+        # print(">>>Verifico se qualcuno ha vinto...", pokemon1Ko, pokemon2Ko)
         return state.pokemon1.isKO() or state.pokemon2.isKO()
 
     def getActionsFromState(self, state: PokemonState) -> list[PokemonAction]:
@@ -550,4 +651,23 @@ def _transitionModel(state: PokemonState, action: PokemonAction) -> PokemonState
     nuovoStato.azione_precedente = action
     nuovoStato.turno += 1
 
+    # 1 Azione: 45 - 10
+    # 2     Cura: 45 - 50
+    # 3         Azione: 45 - 0
+    # 2     Graffio: 10 - 10
+    # 3         Azione: 10 - 0
+    global stampatoUtility
+    if stampatoUtility:
+        tabs = "\t\t\t\t" * (nuovoStato.turno - 1)
+        stampatoUtility = False
+    else:
+        tabs = "\t"
+    print(
+        f"{tabs}{nuovoStato.turno} {nuovoStato.azione_precedente.mossa.name}: {nuovoStato.pokemon1.statistiche[Statistica.PUNTI_SALUTE]} - {nuovoStato.pokemon2.statistiche[Statistica.PUNTI_SALUTE]}\t",
+        end="",
+    )
+
     return nuovoStato
+
+
+stampatoUtility = False

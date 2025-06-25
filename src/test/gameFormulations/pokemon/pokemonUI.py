@@ -1,9 +1,15 @@
 import threading as th
 import tkinter as tk
-from test.gameFormulations.pokemon.pokemon import Pokemon, PokemonAction, PokemonState
+from test.gameFormulations.pokemon.mossa import Mossa
+from test.gameFormulations.pokemon.pokemon import (
+    Pokemon,
+    PokemonAction,
+    PokemonPlayerUmano,
+    PokemonState,
+)
 from test.gameFormulations.pokemon.statistiche import Statistica
 from tkinter import ttk
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 
 from PIL import Image, ImageTk
 
@@ -144,8 +150,18 @@ class MainFrame(tk.Frame):
         )
         self.pokemon_battle.pack(side=tk.TOP, anchor="center")
 
+        # frame per le mosse
+        self.move_buttons_frame = tk.Frame(self)
+        self.move_buttons_frame.pack(fill="x", side=tk.BOTTOM, anchor="center", padx=5, pady=5)
+
+        self.move_buttons: list[tk.Button] = []
+        for i in range(4):
+            btn = tk.Button(self.move_buttons_frame, text=f"Mossa {i+1}", state=tk.DISABLED)
+            btn.grid(row=0, column=i, padx=5)
+            self.move_buttons.append(btn)
+
         # log battaglia
-        self.log = tk.Text(self, height=5, state=tk.DISABLED)
+        self.log = tk.Text(self, height=20, state=tk.DISABLED)
         self.log.pack(fill="x", side=tk.BOTTOM, anchor="center", padx=5, pady=10)
 
         # pulsante per avviare il turno
@@ -196,16 +212,56 @@ class MainFrame(tk.Frame):
 
         self.append_log("-" * 30)
 
+    def show_moves(
+        self,
+        pokemon: Pokemon,
+        on_move_selected_callback: Callable[[Mossa], None],
+    ):
+        # aggiorna i bottoni con le mosse attuali del Pokémon
+        for i, mossa in enumerate(pokemon.mosse):
+            self.move_buttons[i]["text"] = mossa.name
+            self.move_buttons[i]["state"] = tk.NORMAL
+            self.move_buttons[i]["command"] = lambda m=mossa: self.on_move_selected(
+                m, on_move_selected_callback
+            )
+
+        # disabilita eventuali bottoni extra
+        for i in range(len(pokemon.mosse), 4):
+            self.move_buttons[i]["text"] = "-"
+            self.move_buttons[i]["state"] = tk.DISABLED
+
+    def on_move_selected(
+        self,
+        mossa,
+        callback: Callable[[Mossa], None],
+    ):
+        # disabilita i bottoni
+        for btn in self.move_buttons:
+            btn["state"] = tk.DISABLED
+
+        callback(mossa)  # richiama il metodo del player per continuare chooseAction
+
     def end_battle(self):
         self.avvia_turno_button.configure(state=tk.DISABLED)
 
 
 class BattleGUI:
     def __init__(self, initialState: PokemonState, waitTurnEvent: th.Event):
+        self.waitTurnEvent = waitTurnEvent
+
         self.root = tk.Tk()
         self.root.title("Pokemon Battle Simulator")
-        self.root.geometry("500x500")
+        self.root.geometry("500x800")
+
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
         self.mainFrame = MainFrame(self.root, initialState, waitTurnEvent)
+
+        if isinstance(initialState.allenatore1, PokemonPlayerUmano):
+            initialState.allenatore1.registerMoveCallback(self.mainFrame.show_moves)
+
+        if isinstance(initialState.allenatore2, PokemonPlayerUmano):
+            initialState.allenatore2.registerMoveCallback(self.mainFrame.show_moves)
 
     def runMainLoop(self):
         self.root.mainloop()
@@ -214,3 +270,6 @@ class BattleGUI:
         self, oldState: PokemonState, action: PokemonAction, newState: PokemonState
     ) -> None:
         return self.mainFrame.update_callback(oldState, action, newState)
+
+    def on_closing(self):
+        self.root.destroy()  # dealloca e chiude correttamente

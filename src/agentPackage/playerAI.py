@@ -18,9 +18,15 @@ class PlayerAI(Player, ABC):
         self.name = name
         self.decisionAlgorithm = decisionAlgorithm
         self.limit = limit
+        self.visited = set()
 
     def chooseAction(self, game: Game):
-        return self.decisionAlgorithm(game, self, self.limit)
+        return self.decisionAlgorithm(
+            game,
+            self,
+            self.visited,
+            self.limit,
+        )
 
     def __str__(self) -> str:
         return self.name

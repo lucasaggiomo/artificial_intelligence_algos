@@ -8,7 +8,7 @@ from agentPackage.state import State
 from agentPackage.tasks.game import Game
 from agentPackage.taskSolvers.taskSolver import TaskSolver
 
-type DecisionAlgorithmType = Callable[[Game, Player, float], Optional[Action]]
+type DecisionAlgorithmType = Callable[[Game, Player, set[State], float], Optional[Action]]
 
 
 class GameTheory(TaskSolver):
@@ -89,13 +89,13 @@ class GameTheory(TaskSolver):
         state = player.percept(game.environment)
 
         # tra tutte le azioni possibili dallo stato state, sceglie quella con massima minUtility (ovvero per massimizzare l'utility peggiore)
-        print("\n\n####################################")
-        print("####################################")
+        # print("\n\n####################################")
+        # print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtility(game, player, nextState, limit)
-            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
-            print("------------------------------------")
+            # print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            # print("------------------------------------")
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
@@ -103,8 +103,8 @@ class GameTheory(TaskSolver):
         print(
             f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
         )
-        print("####################################")
-        print("####################################\n\n")
+        # print("####################################")
+        # print("####################################\n\n")
         return maxUtilityAction
 
     @staticmethod
@@ -167,6 +167,7 @@ class GameTheory(TaskSolver):
     def minimaxAlphaBetaDecision(
         game: Game,
         player: Player,
+        visited: set[State],  # tiene traccia degli stati visitati
         limit: float = float("+inf"),
     ) -> Optional[Action]:
         """
@@ -179,13 +180,20 @@ class GameTheory(TaskSolver):
         maxUtilityAction = None
         maxSoFar = float("-inf")
         minSoFar = float("+inf")
+        visited.add(state)
 
-        print("\n\n####################################")
-        print("####################################")
+        # print("\n\n####################################")
+        # print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtilityAlphaBeta(
-                game, player, nextState, maxSoFar, minSoFar, limit - 1
+                game,
+                player,
+                nextState,
+                maxSoFar,
+                minSoFar,
+                visited,
+                limit - 1,
             )
             print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
             print("------------------------------------")
@@ -198,8 +206,8 @@ class GameTheory(TaskSolver):
         print(
             f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
         )
-        print("####################################")
-        print("####################################\n\n")
+        # print("####################################")
+        # print("####################################\n\n")
 
         return maxUtilityAction
 
@@ -210,11 +218,21 @@ class GameTheory(TaskSolver):
         state: State,
         maxSoFar: float,
         minSoFar: float,
+        visited: set[State],
         limit: float = float("+inf"),
     ) -> float:
-        if limit <= 0 or game.terminalTest(state):
+
+        # tronca l'esplorazione dell'albero se:
+        # - ha raggiunto il limite di profondità prefissata
+        # - lo stato è terminale
+        # - lo stato è già stato visitato
+        if limit == 0 or game.terminalTest(state) or state in visited:
+            # if state in visited:
+            #     input("TROVATO, continua...")
             return player.getUtility(state)
 
+        # riassegna visited per non modificare il set passatogli dal chiamante
+        visited.add(state)
         maxUtility = float("-inf")
         for action in game.getActionsFromState(state):
             maxUtility = max(
@@ -225,6 +243,7 @@ class GameTheory(TaskSolver):
                     game.transitionModel(state, action),
                     maxSoFar,
                     minSoFar,
+                    visited,
                     limit - 1,
                 ),
             )
@@ -243,11 +262,19 @@ class GameTheory(TaskSolver):
         state: State,
         maxSoFar: float,
         minSoFar: float,
+        visited: set[State],
         limit: float = float("+inf"),
     ) -> float:
-        if limit <= 0 or game.terminalTest(state):
+
+        # tronca l'esplorazione dell'albero se:
+        # - ha raggiunto il limite di profondità prefissata
+        # - lo stato è terminale
+        # - lo stato è già stato visitato
+        if limit == 0 or game.terminalTest(state) or state in visited:
             return player.getUtility(state)
 
+        # riassegna visited per non modificare il set passatogli dal chiamante
+        visited.add(state)
         minUtility = float("+inf")
         for action in game.getActionsFromState(state):
             minUtility = min(
@@ -258,6 +285,7 @@ class GameTheory(TaskSolver):
                     game.transitionModel(state, action),
                     maxSoFar,
                     minSoFar,
+                    visited,
                     limit - 1,
                 ),
             )
