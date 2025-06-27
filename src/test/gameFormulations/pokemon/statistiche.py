@@ -9,7 +9,7 @@ class Statistica(StrEnum):
     DIFESA = "Difesa"
     ATTACCO_SPECIALE = "Attacco Speciale"
     DIFESA_SPECIALE = "Difesa Speciale"
-    VELOCITA = "Velocità"
+    # VELOCITA = "Velocità"
     # ELUSIONE = "Elusione"
     # PRECISIONE = "Precisione"
 
@@ -18,11 +18,10 @@ class Statistiche:
     def __init__(
         self,
         punti_salute: int,
-        attacco: int = 0,
-        difesa: int = 0,
-        attacco_speciale: int = 0,
-        difesa_speciale: int = 0,
-        velocita: int = 0,
+        attacco: int = 50,
+        difesa: int = 50,
+        attacco_speciale: int = 50,
+        difesa_speciale: int = 50,
     ):
         self._stats = {
             Statistica.PUNTI_SALUTE: punti_salute,
@@ -30,7 +29,6 @@ class Statistiche:
             Statistica.DIFESA: difesa,
             Statistica.ATTACCO_SPECIALE: attacco_speciale,
             Statistica.DIFESA_SPECIALE: difesa_speciale,
-            Statistica.VELOCITA: velocita,
         }
 
     def copy(self) -> Statistiche:
@@ -40,8 +38,15 @@ class Statistiche:
             self._stats[Statistica.DIFESA],
             self._stats[Statistica.ATTACCO_SPECIALE],
             self._stats[Statistica.DIFESA_SPECIALE],
-            self._stats[Statistica.VELOCITA],
         )
+
+    def changeTo(self, other: Statistiche) -> None:
+        """Metodo di comodo che rende un oggetto Statistiche già esistente uguale a delle statistiche in input"""
+        self._stats[Statistica.PUNTI_SALUTE] = other._stats[Statistica.PUNTI_SALUTE]
+        self._stats[Statistica.ATTACCO] = other._stats[Statistica.ATTACCO]
+        self._stats[Statistica.DIFESA] = other._stats[Statistica.DIFESA]
+        self._stats[Statistica.ATTACCO_SPECIALE] = other._stats[Statistica.ATTACCO_SPECIALE]
+        self._stats[Statistica.DIFESA_SPECIALE] = other._stats[Statistica.DIFESA_SPECIALE]
 
     def __getitem__(self, statistica: Statistica) -> int:
         return self._stats[statistica]

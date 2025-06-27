@@ -18,13 +18,9 @@ class Mossa(Elemento, ABC):
         self,
         name: str,
         tipo: Tipo,
-        precisione: int = 100,
-        # punti_potenza: int,
     ):
         super().__init__(name)
         self.tipo = tipo
-        self.precisione = precisione
-        # self.punti_potenza = punti_potenza
 
 
 class CategoriaMossaOffensiva(StrEnum):
@@ -44,16 +40,12 @@ class MossaOffensiva(Mossa):
         self,
         name: str,
         tipo: Tipo,
-        # punti_potenza: int,
         potenza: int,
         categoria: CategoriaMossaOffensiva,
-        precisione: int = 100,
     ):
         super().__init__(
             name,
             tipo,
-            precisione,
-            # punti_potenza,
         )
         self.potenza = potenza
         self.categoria = categoria
@@ -77,16 +69,12 @@ class MossaStato(Mossa):
         self,
         name: str,
         tipo: Tipo,
-        # punti_potenza: int,
         categoria: CategoriaMossaStato,
         modificheStatistiche: dict[Statistica, int],
-        precisione: int = 100,
     ):
         super().__init__(
             name,
             tipo,
-            precisione,
-            # punti_potenza,
         )
         self.categoria = categoria
         self.modificheStatistiche = modificheStatistiche

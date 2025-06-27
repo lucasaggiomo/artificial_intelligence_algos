@@ -25,6 +25,8 @@ from agentPackage.state import State
 from agentPackage.tasks.game import Game
 from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType
 
+NUM_DIGITS = 6  # per l'approssimazione di getUtility
+
 
 class Allenatore(Elemento):
     """Un allenatore è un giocatore con un pokemon sul campo"""
@@ -40,6 +42,11 @@ class Allenatore(Elemento):
             self.name,
             self.pokemon.copy(),
         )
+
+    def changeTo(self, other: Allenatore) -> None:
+        """Metodo di comodo che rende un oggetto Allenatore già esistente uguale ad un allenatore in input"""
+        self.name = other.name
+        self.pokemon.changeTo(other.pokemon)
 
     def __str__(self) -> str:
         return f"{self.name} [\n{textwrap.indent(str(self.pokemon), "\t")}\n]"
@@ -59,7 +66,7 @@ class Allenatore(Elemento):
         )
 
 
-class PokemonPlayer(Player, Allenatore):
+class PokemonPlayer(Allenatore, Player):
     """
     Un Player di pokemon estende la classe astratta Player ed è un allenatore.
     Si è voluto evitare che fondere questa classe con Allenatore. In questo modo, infatti,
@@ -68,12 +75,13 @@ class PokemonPlayer(Player, Allenatore):
     La classe PokemonPlayer unisce la logica di Allenatore con quella di Player.
     """
 
-    def __init__(self, sensor: Sensor, name: str, numero: int, pokemon: Pokemon):
+    def __init__(self, sensor: Sensor, name: str, pokemon: Pokemon):
         Player.__init__(self, sensor, name)
         Allenatore.__init__(self, name, pokemon)
-        self.numero = numero
+        self.numero: int = 0
 
     def getUtility(self, state: PokemonState) -> float:
+
         if self.numero == 1:
             mio_pokemon = state.pokemon1
             avversario = state.pokemon2
@@ -85,35 +93,36 @@ class PokemonPlayer(Player, Allenatore):
         ps_mio = mio_pokemon.statistiche[Statistica.PUNTI_SALUTE]
         ps_avversario = avversario.statistiche[Statistica.PUNTI_SALUTE]
 
-        # verifica se qualcuno è K.O.
-        if ps_mio == 0 and ps_avversario > 0:
-            print("Utility finale: " + str(-1.0))
-            return -1.0  # sconfitta
-        elif ps_avversario == 0 and ps_mio > 0:
-            print("Utility finale: " + str(1.0))
-            return 1.0  # vittoria
-        elif ps_mio == 0 and ps_avversario == 0:
-            print("Utility finale: " + str(0.0))
-            return 0.0  # pareggio
-
-        # normalizza sulla somma totale degli HP
-        total_ps = ps_mio + ps_avversario
-
-        utility = (ps_mio - ps_avversario) / total_ps
-
         # penalizza il punteggio all'avanzare dei turni,
         # prediligendo una vittoria più rapida
-        decay = 0.99**state.turno
+        decay = 0.999**state.turno
+
+        utility = 0.0
+
+        # verifica se qualcuno è K.O.
+        if ps_mio == 0 and ps_avversario > 0:
+            utility = -1.0  # sconfitta
+        elif ps_avversario == 0 and ps_mio > 0:
+            utility = 1.0  # vittoria
+        elif ps_mio == 0 and ps_avversario == 0:
+            utility = 0.0
+        else:
+            # normalizza sulla somma totale degli HP
+            total_ps = ps_mio + ps_avversario
+
+            utility = (ps_mio - ps_avversario) / total_ps
+
+            # print("Utility finale: " + str(utility))
+            # global stampatoUtility
+            # stampatoUtility = True
+
         utility *= decay
-        print("Utility finale: " + str(utility))
-        global stampatoUtility
-        stampatoUtility = True
-        return utility
+        return round(utility, NUM_DIGITS)
 
 
 class PokemonPlayerUmano(PokemonPlayer):
-    def __init__(self, name: str, numero: int, pokemon: Pokemon):
-        PokemonPlayer.__init__(self, StateSensor(), name, numero, pokemon)
+    def __init__(self, name: str, pokemon: Pokemon):
+        PokemonPlayer.__init__(self, StateSensor(), name, pokemon)
         self.chosenMove = None
         self._moveSelectedEvent = th.Event()
         self._registerMoveCallback: Optional[Callable[[Pokemon, Callable[[Mossa], None]], None]] = (
@@ -173,14 +182,13 @@ class PokemonPlayerAI(
     def __init__(
         self,
         name: str,
-        numero: int,
         pokemon: Pokemon,
         decisionAlgorithm: DecisionAlgorithmType,
         limit: float = float("+inf"),
     ):
         sensor = StateSensor()
         PlayerAI.__init__(self, sensor, name, decisionAlgorithm, limit)
-        PokemonPlayer.__init__(self, sensor, name, numero, pokemon)
+        PokemonPlayer.__init__(self, sensor, name, pokemon)
 
 
 class Pokemon(Elemento):
@@ -221,6 +229,14 @@ class Pokemon(Elemento):
             self.maxPS,
         )
 
+    def changeTo(self, other: Pokemon) -> None:
+        """Metodo di comodo che rende un oggetto Pokemon già esistente uguale ad un pokemon in input"""
+        self.name = other.name
+        self.tipi = set(other.tipi)
+        self.statistiche.changeTo(other.statistiche)
+        self.mosse = set(other.mosse)
+        self.maxPS = other.maxPS
+
     def infliggiDanno(self, danno: int) -> int:
         """
         Infligge il danno e restituisce il danno totale inflitto
@@ -244,19 +260,22 @@ class Pokemon(Elemento):
         """Applica l'effetto di stato (per ora solo BUFF o DEBUFF)"""
         for statistica, valore in mossa.modificheStatistiche.items():
             # aumenta o decrementa le statistiche, considerando che i PS non possono scendere oltre 0 e salire oltre self.maxPS
+            # e le altre statistiche non possonos scendere sotto il valore 1
             if statistica == Statistica.PUNTI_SALUTE:
                 currPS = self.statistiche[statistica]
                 newPS = max(0, min(self.maxPS, currPS + valore))
                 self.statistiche[statistica] = newPS
             else:
-                self.statistiche[statistica] += valore
+                currValue = self.statistiche[statistica]
+                newValue = max(1, currValue + valore)
+                self.statistiche[statistica] = newValue
 
     def isKO(self) -> bool:
         return not self.isAlive()
 
     def isAlive(self) -> bool:
         """True se il pokemon è K.O., False altrimenti"""
-        ps = self.statistiche[Statistica.PUNTI_SALUTE]
+        # ps = self.statistiche[Statistica.PUNTI_SALUTE]
         # print(f">>>>>>Punti salute di {self.name} = {ps}, restituisco {self.statistiche[Statistica.PUNTI_SALUTE] == 0}")
         return self.statistiche[Statistica.PUNTI_SALUTE] > 0
 
@@ -280,8 +299,8 @@ class Pokemon(Elemento):
     def __str__(self) -> str:
         return (
             f"{self.name}\n\tTipi = {[tipo.name for tipo in self.tipi]}\n\tStatistiche = [\n"
-            f"{textwrap.indent("\n".join(str(self.statistiche).splitlines()),"\t- ")}"
-            "\n]"
+            f"{textwrap.indent("\n".join(str(self.statistiche).splitlines()), "\t\t- ")}"
+            "\n\t]"
         )
 
 
@@ -337,6 +356,17 @@ class PokemonState(State):
             self.turno,
         )
 
+    def changeTo(self, other: PokemonState) -> None:
+        """Metodo di comodo che rende un oggetto PokemonState già esistente uguale ad uno stato in input"""
+        self.allenatore1.changeTo(other.allenatore1)
+        self.allenatore2.changeTo(other.allenatore2)
+        self.turno = other.turno
+        if not other.azione_precedente:
+            self.azione_precedente = None
+        elif self.azione_precedente:
+            self.azione_precedente.changeTo(other.azione_precedente)  # l'azione non viene copiata
+        # self.azione_precedente.changeTo(other.azione_precedente)
+
     # per accedere in maniera più semplice ai pokemon degli allenatori
     # sono property (per essere readonly)
     @property
@@ -370,8 +400,8 @@ class PokemonState(State):
     def __str__(self) -> str:
         return (
             f"Mossa precedente: [\n{textwrap.indent(str(self.azione_precedente), '\t')}\n]\n"
-            f"Allenatore1: {self.allenatore1}\n"
-            f"Allenatore2: {self.allenatore2}\n"
+            f"Allenatore1: {str(self.allenatore1)}\n"
+            f"Allenatore2: {str(self.allenatore2)}\n"
             f"Turno di: {self.allenatore1.name if self.turno % 2 == 0 else self.allenatore2.name}"
         )
         # Campo: {self.campo}
@@ -402,7 +432,7 @@ class PokemonAction(Action):
         self.moltiplicatorePuro = 1
         self.moltiplicatoreTotale = 1
 
-    def calcolaDanno(self) -> int:
+    def calcolaDanno_(self) -> int:
         """
         STUB per semplificare, il danno è PARI alla potenza della mossa.
         Non tiene conto dei moltiplicatori in base ai tipi, né delle statistiche dei pokemon.
@@ -411,8 +441,8 @@ class PokemonAction(Action):
             self.danno = 0
             return 0
 
-        stringa = f"Calcolo del danno con pokemon:\n{self.pokemon}\nverso{self.target}\ncon la mossa {self.mossa}"
-        print(textwrap.indent(stringa, "\t----"))
+        stringa = f"Calcolo del danno con pokemon:\n{self.pokemon}\nverso\n{self.target}\ncon la mossa {self.mossa}"
+        # print(textwrap.indent(stringa, "\t----"))
 
         self.danno = (
             self.mossa.potenza
@@ -421,7 +451,7 @@ class PokemonAction(Action):
         )
         return self.danno
 
-    def calcolaDanno2(self) -> int:
+    def calcolaDanno(self) -> int:
         """Questa funzione calcola il danno solo se la mossa riferita da questa azione è una mossa offensiva"""
         if not isinstance(self.mossa, MossaOffensiva):
             self.danno = 0
@@ -442,6 +472,7 @@ class PokemonAction(Action):
                 difesa = self.target.statistiche[Statistica.DIFESA_SPECIALE]
 
         danno = ((2 * livello / 5 + 2) * self.mossa.potenza * attacco / difesa) / 50 + 2
+        # print(f"Danno con potenza {self.mossa.potenza}, attacco {attacco} e difesa {difesa}: {danno}")
 
         # CALCOLO MOLTIPLICATORE
         moltiplicatore = 1.0
@@ -473,14 +504,21 @@ class PokemonAction(Action):
         self.danno = danno
         return danno
 
+    def changeTo(self, other: PokemonAction) -> None:
+        """Metodo di comodo che rende un oggetto PokemonAction già esistente uguale ad un'azione in input"""
+        self.pokemon.changeTo(other.pokemon)
+        self.mossa = other.mossa
+        self.target.changeTo(other.target)
+
     def __hash__(self) -> int:
         prime = 31
         result = 0
         result = result * prime + hash(self.pokemon)
         result = result * prime + hash(self.mossa)
-        result = result * prime + hash(self.danno)
-        result = result * prime + hash(self.moltiplicatorePuro)
-        result = result * prime + hash(self.moltiplicatoreTotale)
+        result = result * prime + hash(self.target)
+        # result = result * prime + hash(self.danno)
+        # result = result * prime + hash(self.moltiplicatorePuro)
+        # result = result * prime + hash(self.moltiplicatoreTotale)
         return result
 
     def __eq__(self, other) -> bool:
@@ -488,9 +526,10 @@ class PokemonAction(Action):
             isinstance(other, PokemonAction)
             and self.pokemon == other.pokemon
             and self.mossa == other.mossa
-            and self.danno == other.danno
-            and self.moltiplicatorePuro == other.moltiplicatorePuro
-            and self.moltiplicatoreTotale == other.moltiplicatoreTotale
+            and self.target == other.target
+            # and self.danno == other.danno
+            # and self.moltiplicatorePuro == other.moltiplicatorePuro
+            # and self.moltiplicatoreTotale == other.moltiplicatoreTotale
         )
 
     def __str__(self) -> str:
@@ -548,8 +587,10 @@ class PokemonEnvironment(Environment):
         return _transitionModel(state, action)
 
     def evolveState(self, action: PokemonAction) -> PokemonState:
-        oldState = self.currentState
-        super().evolveState(action)
+        # evolve lo stato corrente, salvandosi una COPIA di quello precedente.
+        # Il riferimento self.currentState viene preservato
+        oldState = self.currentState.copy()
+        self.currentState.changeTo(self.transitionModel(self.currentState, action))
         if self.updateCallback:
             self.updateCallback(oldState, action, self.currentState)
         return self.currentState
@@ -561,6 +602,8 @@ class PokemonGame(Game):
         player1: PokemonPlayer,
         player2: PokemonPlayer,
     ):
+        player1.numero = 1
+        player2.numero = 2
         self.allenatore1 = player1
         self.allenatore2 = player2
         # self.campo = Campo(
@@ -581,8 +624,8 @@ class PokemonGame(Game):
         self.environment.updateCallback = updateCallback
 
     def terminalTest(self, state: PokemonState) -> bool:
-        pokemon1Ko = state.pokemon1.isKO()
-        pokemon2Ko = state.pokemon2.isKO()
+        # pokemon1Ko = state.pokemon1.isKO()
+        # pokemon2Ko = state.pokemon2.isKO()
         # print(">>>Verifico se qualcuno ha vinto...", pokemon1Ko, pokemon2Ko)
         return state.pokemon1.isKO() or state.pokemon2.isKO()
 
@@ -651,23 +694,23 @@ def _transitionModel(state: PokemonState, action: PokemonAction) -> PokemonState
     nuovoStato.azione_precedente = action
     nuovoStato.turno += 1
 
-    # 1 Azione: 45 - 10
-    # 2     Cura: 45 - 50
-    # 3         Azione: 45 - 0
-    # 2     Graffio: 10 - 10
-    # 3         Azione: 10 - 0
-    global stampatoUtility
-    if stampatoUtility:
-        tabs = "\t\t\t\t" * (nuovoStato.turno - 1)
-        stampatoUtility = False
-    else:
-        tabs = "\t"
-    print(
-        f"{tabs}{nuovoStato.turno} {nuovoStato.azione_precedente.mossa.name}: {nuovoStato.pokemon1.statistiche[Statistica.PUNTI_SALUTE]} - {nuovoStato.pokemon2.statistiche[Statistica.PUNTI_SALUTE]}\t",
-        end="",
-    )
+    # # 1 Azione: 45 - 10
+    # # 2     Cura: 45 - 50
+    # # 3         Azione: 45 - 0
+    # # 2     Graffio: 10 - 10
+    # # 3         Azione: 10 - 0
+    # global stampatoUtility
+    # if stampatoUtility:
+    #     tabs = "\t\t\t\t" * (nuovoStato.turno - 1)
+    #     stampatoUtility = False
+    # else:
+    #     tabs = "\t"
+    # print(
+    #     f"{tabs}{nuovoStato.turno} {nuovoStato.azione_precedente.mossa.name}: {nuovoStato.pokemon1.statistiche[Statistica.PUNTI_SALUTE]} - {nuovoStato.pokemon2.statistiche[Statistica.PUNTI_SALUTE]}\t",
+    #     end="",
+    # )
 
     return nuovoStato
 
 
-stampatoUtility = False
+# stampatoUtility = False

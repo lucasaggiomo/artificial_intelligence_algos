@@ -272,4 +272,5 @@ class BattleGUI:
         return self.mainFrame.update_callback(oldState, action, newState)
 
     def on_closing(self):
+        print("DISTRUGGO...")
         self.root.destroy()  # dealloca e chiude correttamente

@@ -1,3 +1,5 @@
+import math
+import random
 import textwrap
 import threading as th
 from typing import Callable, Optional
@@ -31,7 +33,7 @@ class GameTheory(TaskSolver):
                 self.waitTurnEvent.clear()
 
                 print("#######################################################")
-                print(f"Turno di {player}")
+                print(f"Turno di {player.name}")
 
                 # SCELTA
                 print("SCELTA DEL PLAYER: " + player.name)
@@ -89,13 +91,13 @@ class GameTheory(TaskSolver):
         state = player.percept(game.environment)
 
         # tra tutte le azioni possibili dallo stato state, sceglie quella con massima minUtility (ovvero per massimizzare l'utility peggiore)
-        # print("\n\n####################################")
-        # print("####################################")
+        print("\n\n####################################")
+        print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtility(game, player, nextState, limit)
-            # print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
-            # print("------------------------------------")
+            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            print("------------------------------------")
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
@@ -103,8 +105,8 @@ class GameTheory(TaskSolver):
         print(
             f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
         )
-        # print("####################################")
-        # print("####################################\n\n")
+        print("####################################")
+        print("####################################\n\n")
         return maxUtilityAction
 
     @staticmethod
@@ -177,14 +179,16 @@ class GameTheory(TaskSolver):
         state = player.percept(game.environment)
 
         maxUtility = float("-inf")
-        maxUtilityAction = None
+        maxUtilityActions: list[Action] = []
         maxSoFar = float("-inf")
         minSoFar = float("+inf")
         visited.add(state)
 
+        validActions = game.getActionsFromState(state)
+
         # print("\n\n####################################")
         # print("####################################")
-        for action in game.getActionsFromState(state):
+        for action in validActions:
             nextState = game.transitionModel(state, action)
             currUtility = GameTheory.minUtilityAlphaBeta(
                 game,
@@ -195,21 +199,56 @@ class GameTheory(TaskSolver):
                 visited,
                 limit - 1,
             )
-            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
-            print("------------------------------------")
+            # print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            # print("------------------------------------")
 
-            if currUtility > maxUtility:
+            if currUtility == maxUtility:
+                maxUtilityActions.append(action)
+            elif currUtility > maxUtility:
                 maxUtility = currUtility
-                maxUtilityAction = action
+                maxUtilityActions = [action]
 
             maxSoFar = max(maxSoFar, maxUtility)
-        print(
-            f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
-        )
+
+        # se ci sono più azioni con la stessa massima utilità, ne sceglie una basandosi sull'euristica
+        # se ancora dovessero esserci mosse con utilità pari, sceglie casualmente
+        if len(maxUtilityActions) > 1:
+            print(
+                f"Parità tra {len(maxUtilityActions)} azioni. Applicazione criterio secondario..."
+            )
+
+            # funzione da usare nel sort (sorteggia per utility rispetto al player)
+            def heuristic(action: Action) -> float:
+                nextState = game.transitionModel(state, action)
+                return player.getUtility(nextState)
+
+            # calcola il massimo tra le utilità delle mosse trovate
+            heuristicValues = [(action, heuristic(action)) for action in maxUtilityActions]
+            maxHeuristic = max(heuristic for _, heuristic in heuristicValues)
+
+            # prende solo le azioni che hanno quell'utilità
+            maxHeuristicActions = [
+                action for action, heuristic in heuristicValues if heuristic == maxHeuristic
+            ]
+
+            # sceglie casualmente se ce n'è più di una con valore massimo
+            selectedAction = random.choice(maxHeuristicActions)
+        else:
+            # sceglie direttamente l'azione maggiore (cioè la prima della lista se presente)
+            selectedAction = maxUtilityActions[0] if maxUtilityActions else None
+
+        # print(
+        #     f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(selectedAction), "\t")}\n]]"
+        # )
         # print("####################################")
         # print("####################################\n\n")
 
-        return maxUtilityAction
+        # qualora per qualche motivo l'azione dovesse essere None (probabile errore), sceglie a caso
+        if selectedAction is None:
+            print("L'AZIONE ERA NONE, PROBABILE ERRORE")
+            selectedAction = random.choice(validActions)
+
+        return selectedAction
 
     @staticmethod
     def maxUtilityAlphaBeta(
