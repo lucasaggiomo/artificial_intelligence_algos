@@ -1,25 +1,26 @@
+import textwrap
 from abc import ABC, abstractmethod
-from typing import Generic
 
-from src.agentPackage.action import A
-from src.agentPackage.state import S
+from agentPackage.action import Action
+from agentPackage.state import State
 
 
-class Environment(Generic[S, A], ABC):
-    def __init__(self, initialState: S):
+class Environment(ABC):
+    def __init__(self, initialState: State):
         self.currentState = initialState
 
     @abstractmethod
-    def transitionModel(self, state: S, action: A) -> S:
-        """Associa ad ogni azione di tipo A, a partire da uno stato di tipo S, lo stato successivo"""
+    def transitionModel(self, state: State, action: Action) -> State:
+        """Associa ad ogni azione, a partire da uno stato di partenza, lo stato successivo"""
         pass
 
-    def evolveState(self, action: A) -> S:
+    def evolveState(self, action: Action) -> State:
+        """Evolve lo stato corrente, eseguendo l'azione richiesta"""
         self.currentState = self.transitionModel(self.currentState, action)
         return self.currentState
 
-    def getCurrentState(self) -> S:
+    def getCurrentState(self) -> State:
         return self.currentState
 
     def render(self):
-        print(f"Ambiente attuale:\n{self.currentState}\n")
+        print(f"Ambiente attuale:\n{textwrap.indent(str(self.currentState), "\t")}\n")

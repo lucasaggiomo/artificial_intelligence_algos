@@ -1,4 +1,4 @@
-from src.agentPackage.state import State
+from agentPackage.state import State
 
 
 class Perception(State):

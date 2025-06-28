@@ -1,16 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Generic
 
-from src.agentPackage.action import A
-from src.agentPackage.agent import Agent
-from src.agentPackage.state import S
-from src.agentPackage.tasks.task import T
+from agentPackage.tasks.task import Task
 
 
 # useless for now
-class TaskSolver(Generic[S, A, T], ABC):
+class TaskSolver(ABC):
     @abstractmethod
-    def __init__(self, task: T):
+    def __init__(self, task: Task):
         self.task = task
 
     # @abstractmethod

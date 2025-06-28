@@ -1,12 +1,18 @@
 from __future__ import annotations
 
-from src.agentPackage.action import Action
-from src.agentPackage.goal import Goal
-from src.agentPackage.state import State
+from typing import Callable
+
+from agentPackage.action import Action
+from agentPackage.agent import Agent
+from agentPackage.environment import Environment
+from agentPackage.goal import Goal
+from agentPackage.sensor import StateSensor
+from agentPackage.state import State
+from agentPackage.tasks.problem import Problem
 
 
 class CityState(State):
-    def __init__(self, name: int):
+    def __init__(self, name: str):
         self.name = name
 
     def __str__(self) -> str:
@@ -39,6 +45,48 @@ class MoveAction(Action):
 
     def __hash__(self):
         return hash((self.from_city, self.to_city))
+
+
+class GoogleMapsGoal(Goal):
+    def __init__(self, goalState: CityState):
+        self.goalState = goalState
+
+    def isGoalAchieved(self, state: State) -> bool:
+        return state == self.goalState
+
+
+class GoogleMapsEnvironment(Environment):
+    def transitionModel(self, state: CityState, action: MoveAction) -> CityState:
+        return _transitionModel(state, action)
+
+
+class GoogleMapsAgent(Agent):
+    def __init__(self):
+        super().__init__(StateSensor())
+
+
+class GoogleMapsProblem(Problem):
+    def __init__(
+        self,
+        initialState: CityState,
+        environment: GoogleMapsEnvironment,
+        agents: list[GoogleMapsAgent],
+        goal: GoogleMapsGoal,
+    ):
+        super().__init__(initialState, environment, agents, goal)
+        self.goal = goal
+
+    def pathCostFunction(self, state: CityState, action: MoveAction):
+        return _pathCostFunction(state, action)
+
+    def heuristicDistFunction(self, state: CityState):
+        return _heuristicDistFunction(state, self.goal)
+
+    def getActionsFromState(self, state: CityState) -> list[MoveAction]:
+        return _getActionsPerState(state)
+
+    def transitionModel(self, state: CityState, action: MoveAction) -> CityState:
+        return _transitionModel(state, action)
 
 
 # città
@@ -219,18 +267,18 @@ for state in states:
     actionsPerStateTable[state] = actions_from_city
 
 
-def actionsPerState(state: CityState) -> list[MoveAction]:
+def _getActionsPerState(state: CityState) -> list[MoveAction]:
     return actionsPerStateTable[state]
 
 
-def transitionModel(state: CityState, action: MoveAction) -> CityState:
+def _transitionModel(state: CityState, action: MoveAction) -> CityState:
     if state != action.from_city:
         raise ValueError("Inconsistent arguments")
     return action.to_city
 
 
 # Funzione di costo del percorso
-def pathCostFunction(state: CityState, action: MoveAction) -> int:
+def _pathCostFunction(state: CityState, action: MoveAction) -> int | float:
     return costMatrix[state.name].get(action.to_city.name, INF)
 
 
@@ -242,9 +290,5 @@ def heuristicDistance(start: CityState, stop: CityState) -> int:
     return sld[start.name]
 
 
-def heuristicDistFunction(state: CityState, goal: Goal) -> int:
-    if goal.context is None or not isinstance(goal.context, CityState):
-        raise NotImplementedError(
-            f"I don't know how to calculate this distance yet, because the goal is not set as a single {CityState.__name__} destination"
-        )
-    return heuristicDistance(state, goal.context)
+def _heuristicDistFunction(state: CityState, goal: GoogleMapsGoal) -> int:
+    return heuristicDistance(state, goal.goalState)

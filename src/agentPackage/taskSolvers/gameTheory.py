@@ -1,37 +1,49 @@
 import random
-from typing import Callable, Generic
+import textwrap
+import threading as th
+from typing import Callable, Optional
 
-from src.agentPackage.action import A, Action
-from src.agentPackage.nodes.gameNode import GameNode
-from src.agentPackage.player import Player
-from src.agentPackage.state import S, State
-from src.agentPackage.tasks.game import Game
-from src.agentPackage.taskSolvers.taskSolver import TaskSolver
+from agentPackage.action import Action
+from agentPackage.player import Player
+from agentPackage.state import State
+from agentPackage.tasks.game import Game
+from agentPackage.taskSolvers.taskSolver import TaskSolver
 
-type DecisionAlgorithmType[S: State, A: Action] = Callable[[Game[S, A], Player[S, A], float], A]
+type DecisionAlgorithmType = Callable[[Game, Player, set[State], float], Optional[Action]]
 
 
-class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
-    def __init__(self, game: Game[S, A]):
+class GameTheory(TaskSolver):
+    def __init__(self, game: Game, waitTurnEvent: Optional[th.Event] = None):
         super().__init__(game)
         self.game = game
         self.currentState = game.initialState
+        self.waitTurnEvent = waitTurnEvent
 
-    def startGame(self) -> bool:
-        gameOver: bool = False
+    def startGame(self):
+        gameOver = False
         print("STATO INIZIALE:\n")
         self.game.environment.render()
         print("Inizia il gioco\n")
         turn = 0
         while not gameOver:
             turn += 1
-            for player in self.game.agents:
-                print(f"Turno di {player}")
+            for player in self.game.players:
+
+                print("Attendo il prossimo turno...")
+                if self.waitTurnEvent:
+                    self.waitTurnEvent.wait()
+                    self.waitTurnEvent.clear()
+
+                print("#######################################################")
+                print(f"Turno di {player.name}")
 
                 # SCELTA
+                print("SCELTA DEL PLAYER: " + player.name)
                 action = player.chooseAction(self.game)
                 if action is None:
                     raise ValueError("action was None")
+
+                print("AZIONE SCELTA: " + str(action))
 
                 # ESECUZIONE
                 player.executeAction(action, self.game.environment)
@@ -47,12 +59,12 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
         print("GAME OVER")
 
-        dict = {player.name: player.getUtility(self.currentState) for player in self.game.agents}
+        dict = {player.name: player.getUtility(self.currentState) for player in self.game.players}
         print("\nUtility:")
         print("\n".join(f"{k}: {v}" for k, v in dict.items()))
 
         utilities = {
-            player.name: player.getUtility(self.currentState) for player in self.game.agents
+            player.name: player.getUtility(self.currentState) for player in self.game.players
         }
 
         # Trova il valore massimo
@@ -68,36 +80,43 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minimaxDecision(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
-    ) -> A:
+        game: Game,
+        player: Player,
+        limit: float = float("+inf"),
+    ) -> Optional[Action]:
         """
         Sceglie l'azione da effettuare a partire dallo stato **state** con algoritmo *minimax*
         """
         maxUtility = float("-inf")
         maxUtilityAction = None
 
+        state = player.percept(game.environment)
+
         # tra tutte le azioni possibili dallo stato state, sceglie quella con massima minUtility (ovvero per massimizzare l'utility peggiore)
-        # print("\n\n####################################")
-        # print("####################################")
+        print("\n\n####################################")
+        print("####################################")
         for action in game.getActionsFromState(state):
             nextState = game.transitionModel(state, action)
-            currUtility = GameTheory[S, A].minUtility(game, player, nextState, limit)
-            # print(f"{nextState}\nminUtility = {currUtility}\n")
+            currUtility = GameTheory.minUtility(game, player, nextState, limit)
+            print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            print("------------------------------------")
             if currUtility > maxUtility:
                 maxUtility = currUtility
                 maxUtilityAction = action
 
-        # print("------------------------------------")
-        # print(
-        #     f"[AGENT]: Ho scelto lo stato\n{game.transitionModel(state, maxUtilityAction)}\nutility = {maxUtility}"
-        # )
-        # print("####################################")
-        # print("####################################\n\n")
+        print(
+            f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(maxUtilityAction), "\t")}\n]]"
+        )
+        print("####################################")
+        print("####################################\n\n")
         return maxUtilityAction
 
     @staticmethod
     def maxUtility(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
+        game: Game,
+        player: Player,
+        state: State,
+        limit: float = float("+inf"),
     ) -> float:
         """
         Per ogni stato possibile raggiungibile da **state**, restituisce l'utilità maggiore tra i minUtility (ovvero tra i casi peggiori).
@@ -115,16 +134,17 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
-                GameTheory[S, A].minUtility(
-                    game, player, game.transitionModel(state, action), limit - 1
-                ),
+                GameTheory.minUtility(game, player, game.transitionModel(state, action), limit - 1),
             )
 
         return maxUtility
 
     @staticmethod
     def minUtility(
-        game: Game[S, A], player: Player[S, A], state: S, limit: float = float("+inf")
+        game: Game,
+        player: Player,
+        state: State,
+        limit: float = float("+inf"),
     ) -> float:
         """
         Per ogni stato possibile raggiungibile da **state**, restituisce l'utilità minore tra i maxUtility (ovvero tra i casi migliori).
@@ -142,17 +162,18 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
-                GameTheory[S, A].maxUtility(
-                    game, player, game.transitionModel(state, action), limit - 1
-                ),
+                GameTheory.maxUtility(game, player, game.transitionModel(state, action), limit - 1),
             )
 
         return minUtility
 
     @staticmethod
     def minimaxAlphaBetaDecision(
-        game: Game[S, A], player: Player[S, A], limit: float = float("+inf")
-    ) -> A:
+        game: Game,
+        player: Player,
+        visited: set[State],  # tiene traccia degli stati visitati
+        limit: float = float("+inf"),
+    ) -> Optional[Action]:
         """
         Sceglie l'azione da effettuare a partire dallo stato **state** con algoritmo *minimax* con la *potatura alpha-beta* (ovvero non espande nodi superflui)
         """
@@ -160,47 +181,110 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
         state = player.percept(game.environment)
 
         maxUtility = float("-inf")
-        maxUtilityAction = None
+        maxUtilityActions: list[Action] = []
         maxSoFar = float("-inf")
         minSoFar = float("+inf")
+        visited.add(state)
 
-        for action in game.getActionsFromState(state):
-            currUtility = GameTheory[S, A].minUtilityAlphaBeta(
-                game, player, game.transitionModel(state, action), maxSoFar, minSoFar, limit - 1
+        validActions = game.getActionsFromState(state)
+
+        # print("\n\n####################################")
+        # print("####################################")
+        for action in validActions:
+            nextState = game.transitionModel(state, action)
+            currUtility = GameTheory.minUtilityAlphaBeta(
+                game,
+                player,
+                nextState,
+                maxSoFar,
+                minSoFar,
+                visited,
+                limit - 1,
             )
+            # print(f"[[\n{textwrap.indent(str(nextState), "\t")}\n]]\nminUtility = {currUtility}\n")
+            # print("------------------------------------")
 
-            if currUtility > maxUtility:
+            if currUtility == maxUtility:
+                maxUtilityActions.append(action)
+            elif currUtility > maxUtility:
                 maxUtility = currUtility
-                maxUtilityAction = action
+                maxUtilityActions = [action]
 
             maxSoFar = max(maxSoFar, maxUtility)
 
-        print(f"[{player.name}]: Max utility = {maxUtility}")
+        # se ci sono più azioni con la stessa massima utilità, ne sceglie una basandosi sull'euristica
+        # se ancora dovessero esserci mosse con utilità pari, sceglie casualmente
+        if len(maxUtilityActions) > 1:
+            print(
+                f"Parità tra {len(maxUtilityActions)} azioni. Applicazione criterio secondario..."
+            )
 
-        return maxUtilityAction
+            # funzione da usare nel sort (sorteggia per utility rispetto al player)
+            def heuristic(action: Action) -> float:
+                nextState = game.transitionModel(state, action)
+                return player.getUtility(nextState)
+
+            # calcola il massimo tra le utilità delle mosse trovate
+            heuristicValues = [(action, heuristic(action)) for action in maxUtilityActions]
+            maxHeuristic = max(heuristic for _, heuristic in heuristicValues)
+
+            # prende solo le azioni che hanno quell'utilità
+            maxHeuristicActions = [
+                action for action, heuristic in heuristicValues if heuristic == maxHeuristic
+            ]
+
+            # sceglie casualmente se ce n'è più di una con valore massimo
+            selectedAction = random.choice(maxHeuristicActions)
+        else:
+            # sceglie direttamente l'azione maggiore (cioè la prima della lista se presente)
+            selectedAction = maxUtilityActions[0] if maxUtilityActions else None
+
+        # print(
+        #     f"[{player.name}]: Max utility = {maxUtility} con la mossa: [[\n{textwrap.indent(str(selectedAction), "\t")}\n]]"
+        # )
+        # print("####################################")
+        # print("####################################\n\n")
+
+        # qualora per qualche motivo l'azione dovesse essere None (probabile errore), sceglie a caso
+        if selectedAction is None:
+            print("L'AZIONE ERA NONE, PROBABILE ERRORE")
+            selectedAction = random.choice(validActions)
+
+        return selectedAction
 
     @staticmethod
     def maxUtilityAlphaBeta(
-        game: Game[S, A],
-        player: Player[S, A],
-        state: S,
+        game: Game,
+        player: Player,
+        state: State,
         maxSoFar: float,
         minSoFar: float,
+        visited: set[State],
         limit: float = float("+inf"),
     ) -> float:
-        if limit <= 0 or game.terminalTest(state):
+
+        # tronca l'esplorazione dell'albero se:
+        # - ha raggiunto il limite di profondità prefissata
+        # - lo stato è terminale
+        # - lo stato è già stato visitato
+        if limit == 0 or game.terminalTest(state) or state in visited:
+            # if state in visited:
+            #     input("TROVATO, continua...")
             return player.getUtility(state)
 
+        # riassegna visited per non modificare il set passatogli dal chiamante
+        visited.add(state)
         maxUtility = float("-inf")
         for action in game.getActionsFromState(state):
             maxUtility = max(
                 maxUtility,
-                GameTheory[S, A].minUtilityAlphaBeta(
+                GameTheory.minUtilityAlphaBeta(
                     game,
                     player,
                     game.transitionModel(state, action),
                     maxSoFar,
                     minSoFar,
+                    visited,
                     limit - 1,
                 ),
             )
@@ -214,26 +298,35 @@ class GameTheory(Generic[S, A], TaskSolver[S, A, Game[S, A]]):
 
     @staticmethod
     def minUtilityAlphaBeta(
-        game: Game[S, A],
-        player: Player[S, A],
-        state: S,
+        game: Game,
+        player: Player,
+        state: State,
         maxSoFar: float,
         minSoFar: float,
+        visited: set[State],
         limit: float = float("+inf"),
     ) -> float:
-        if limit <= 0 or game.terminalTest(state):
+
+        # tronca l'esplorazione dell'albero se:
+        # - ha raggiunto il limite di profondità prefissata
+        # - lo stato è terminale
+        # - lo stato è già stato visitato
+        if limit == 0 or game.terminalTest(state) or state in visited:
             return player.getUtility(state)
 
+        # riassegna visited per non modificare il set passatogli dal chiamante
+        visited.add(state)
         minUtility = float("+inf")
         for action in game.getActionsFromState(state):
             minUtility = min(
                 minUtility,
-                GameTheory[S, A].maxUtilityAlphaBeta(
+                GameTheory.maxUtilityAlphaBeta(
                     game,
                     player,
                     game.transitionModel(state, action),
                     maxSoFar,
                     minSoFar,
+                    visited,
                     limit - 1,
                 ),
             )

@@ -3,15 +3,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import StrEnum
 from functools import lru_cache
+from typing import cast
 
-from src.agentPackage.action import Action
-from src.agentPackage.environment import Environment
-from src.agentPackage.player import Player
-from src.agentPackage.playerAI import PlayerAI
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import State
-from src.agentPackage.tasks.game import Game
-from src.agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
+from agentPackage.action import Action
+from agentPackage.environment import Environment
+from agentPackage.perception import Perception
+from agentPackage.player import Player
+from agentPackage.playerAI import PlayerAI
+from agentPackage.sensor import Sensor, StateSensor
+from agentPackage.state import State
+from agentPackage.tasks.game import Game
+from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
 
 
 class Symbol(StrEnum):
@@ -81,16 +83,16 @@ class TicTacToeAction(Action):
         return hash((self.row, self.col))
 
 
-class TicTacToeEnvironment(Environment[TicTacToeState, TicTacToeAction]):
+class TicTacToeEnvironment(Environment):
     def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
         return _transitionModel(state, action)
 
 
-class TicTacToeGame(Game[TicTacToeState, TicTacToeAction]):
+class TicTacToeGame(Game):
     def __init__(
         self,
         initialState: TicTacToeState,
-        environment: Environment[TicTacToeState, TicTacToeAction],
+        environment: Environment,
         players: list[TicTacToePlayer],
         required: int,
     ):
@@ -109,36 +111,22 @@ class TicTacToeGame(Game[TicTacToeState, TicTacToeAction]):
         return _transitionModel(state, action)
 
 
-class TicTacToePlayerAI(PlayerAI[TicTacToeState, TicTacToeAction]):
-    def __init__(
-        self,
-        symbol: Symbol,
-        decisionAlgorithm: DecisionAlgorithmType,
-        limit: float = float("+inf"),
-        required: int = 3,
-    ):
-        super().__init__(
-            Sensor[TicTacToeState, TicTacToeAction](), symbol.name, decisionAlgorithm, limit
-        )
-        self.symbol = symbol
-        self.required = required
-
-    # @lru_cache(maxsize=100000)
-    def getUtility(self, state: TicTacToeState) -> float:
-        return _getUtility(state, self.symbol, self.required)
-
-
-class TicTacToePlayer(Player[TicTacToeState, TicTacToeAction]):
+class TicTacToePlayer(Player):
     def __init__(self, symbol: Symbol, printOptions: bool = True):
-        super().__init__(Sensor[TicTacToeState, TicTacToeAction](), symbol.name)
+        super().__init__(StateSensor(), symbol.name)
         self.symbol = symbol
         self.printOptions = printOptions
+        self.required: int = 0
 
-    def chooseAction(self, game: Game[TicTacToeState, TicTacToeAction]) -> TicTacToeAction:
-        currentState: TicTacToeState = self.percept(game.environment)
+    # per type checking
+    def percept(self, environment: Environment) -> TicTacToeState:
+        return cast(TicTacToeState, super().percept(environment))
+
+    def chooseAction(self, game: Game) -> TicTacToeAction:
+        currenState: TicTacToeState = self.percept(game.environment)
 
         # Calcola le azioni valide
-        validActions = _actionsPerState(currentState)
+        validActions = _actionsPerState(currenState)
         validPositions = [(a.row, a.col) for a in validActions]
         positionOutput = " - ".join(map(lambda t: f"{t[0]}, {t[1]}", validPositions))
 
@@ -172,7 +160,24 @@ class TicTacToePlayer(Player[TicTacToeState, TicTacToeAction]):
         return _getUtility(state, self.symbol, self.required)
 
 
-class TicTacToeGameTheory(GameTheory[TicTacToeState, TicTacToeAction]):
+class TicTacToePlayerAI(PlayerAI, TicTacToePlayer):
+    def __init__(
+        self,
+        symbol: Symbol,
+        decisionAlgorithm: DecisionAlgorithmType,
+        limit: float = float("+inf"),
+        required: int = 3,
+    ):
+        PlayerAI.__init__(self, StateSensor(), symbol.name, decisionAlgorithm, limit)
+        TicTacToePlayer.__init__(self, symbol, printOptions=False)
+        self.required = required
+
+    # @lru_cache(maxsize=100000)
+    def getUtility(self, state: TicTacToeState) -> float:
+        return _getUtility(state, self.symbol, self.required)
+
+
+class TicTacToeGameTheory(GameTheory):
     pass
 
 

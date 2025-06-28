@@ -1,37 +1,37 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, Self
+from typing import Optional
 
-from src.agentPackage.action import A
-from src.agentPackage.state import S
-from src.agentPackage.tasks.task import T
+from agentPackage.action import Action
+from agentPackage.state import State
+from agentPackage.tasks.task import Task
 
 
-class Node(Generic[S, A, T], ABC):
+class Node(ABC):
     @abstractmethod
     def __init__(
         self,
-        parent: Self,
-        state: S,
-        action: A,
+        parent: Optional[Node],
+        state: State,
+        action: Optional[Action],
     ):
         """
-        **parent**: *Self*                        - il nodo padre (None se è la radice)
-        **children**: *list[Self]*                - i nodi figli associati
+        **parent**: *Optional[Node]*              - il nodo padre (None se è la radice)
+        **children**: *list[Node]*                - i nodi figli associati
         **state**: *State*                        - lo stato associato al nodo
-        **action**: *Action*                      - l'azione che ha portato a generare il nodo
+        **action**: *Optional[Action]*            - l'azione che ha portato a generare il nodo
         """
         self.parent = parent
-        self.children: list[Self] = []
+        self.children: list[Node] = []
         self.state = state
         self.action = action
 
-    def addChild(self, child: Self) -> None:
+    def addChild(self, child: Node) -> None:
         self.children.append(child)
         child.parent = self
 
-    def childNode(self, task: T, action: A) -> Self:
+    def childNode(self, task: Task, action: Action) -> Node:
         """
         Crea un nodo figlio usando il metodo astratto `createChild` che ogni sottoclasse deve implementare.
         """
@@ -44,7 +44,7 @@ class Node(Generic[S, A, T], ABC):
         return newNode
 
     @abstractmethod
-    def createChild(self, newState: S, action: A, task: T) -> Self:
+    def createChild(self, newState: State, action: Action, task: Task) -> Node:
         """
         Metodo che ogni sottoclasse deve implementare per restituire una nuova istanza del proprio tipo.
         """
@@ -52,7 +52,7 @@ class Node(Generic[S, A, T], ABC):
 
     # operators by comparison value
     @abstractmethod
-    def comparisonValue(self):
+    def comparisonValue(self) -> int | float:
         # unreachable
         pass
 

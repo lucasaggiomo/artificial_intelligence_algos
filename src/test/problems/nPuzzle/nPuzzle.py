@@ -2,20 +2,20 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from src.agentPackage.action import Action
-from src.agentPackage.agent import Agent
-from src.agentPackage.environment import Environment
-from src.agentPackage.goal import Goal
-from src.agentPackage.sensor import Sensor
-from src.agentPackage.state import State
-from src.agentPackage.tasks.problem import Problem
-from src.agentPackage.taskSolvers.problemSolving import ProblemSolving
+from agentPackage.action import Action
+from agentPackage.agent import Agent
+from agentPackage.environment import Environment
+from agentPackage.goal import Goal
+from agentPackage.sensor import StateSensor
+from agentPackage.state import State
+from agentPackage.tasks.problem import Problem
+from agentPackage.taskSolvers.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):
     BLANK = 0
 
-    def __init__(self, board: tuple[int], dimension: int):
+    def __init__(self, board: tuple[int, ...], dimension: int):
         if dimension <= 0:
             raise ValueError(f"Dimension must be positive: {dimension}")
 
@@ -81,12 +81,12 @@ class NPuzzleAction(Action):
         return hash(self.value)
 
 
-class NPuzzleEnvironment(Environment[NPuzzleState, NPuzzleAction]):
+class NPuzzleEnvironment(Environment):
     def transitionModel(self, state: NPuzzleState, action: NPuzzleAction) -> NPuzzleState:
         return _transitionModel(state, action)
 
 
-class NPuzzleGoal(Goal[NPuzzleState]):
+class NPuzzleGoal(Goal):
     def __init__(self, stateToReach):
         self.stateToReach = stateToReach
 
@@ -97,42 +97,43 @@ class NPuzzleGoal(Goal[NPuzzleState]):
         return f"Stato finale:\n{self.stateToReach}\n"
 
 
-class NPuzzleAgent(Agent[NPuzzleState, NPuzzleAction]):
+class NPuzzleAgent(Agent):
     def __init__(self):
-        super().__init__(Sensor[NPuzzleState, NPuzzleAction]())
+        super().__init__(StateSensor())
 
 
-class NPuzzleProblem(Problem[NPuzzleState, NPuzzleAction]):
+class NPuzzleProblem(Problem):
     def __init__(
         self,
         initialState: NPuzzleState,
         environment: NPuzzleEnvironment,
         agents: list[NPuzzleAgent],
         goal: NPuzzleGoal,
-        heuristic: Callable[[NPuzzleState, Goal, dict[int, tuple[int, int]]], int],
+        heuristic: Callable[[NPuzzleState, NPuzzleGoal, dict[int, tuple[int, int]]], int],
     ):
         super().__init__(initialState, environment, agents, goal)
-        self.heuristic = heuristic
+        self.goal = goal  # type checking
+        self.heuristic = heuristic  # type checking
         self.goalMap = self.goal.stateToReach.createGoalMap()
 
-    def pathCostFunction(self, state, action):
+    def pathCostFunction(self, state: NPuzzleState, action: NPuzzleAction):
         return _pathCostFunction(state, action)
 
-    def heuristicDistFunction(self, state):
+    def heuristicDistFunction(self, state: NPuzzleState):
         return _heuristicDistFunction(state, self.goal, self.goalMap, self.heuristic)
 
-    def getActionsFromState(self, state):
-        return _getActionsFromState(state)
+    def getActionsFromState(self, state: NPuzzleState):
+        return _geActionsFromState(state)
 
-    def transitionModel(self, state, action):
+    def transitionModel(self, state: NPuzzleState, action: NPuzzleAction):
         return _transitionModel(state, action)
 
 
-class NPuzzleProblemSolving(ProblemSolving[NPuzzleState, NPuzzleAction]):
+class NPuzzleProblemSolving(ProblemSolving):
     pass
 
 
-def _getActionsFromState(state: NPuzzleState) -> list[NPuzzleAction]:
+def _geActionsFromState(state: NPuzzleState) -> list[NPuzzleAction]:
     blank_row, blank_col = state.find_blank()
     valid_actions = []
 
@@ -217,7 +218,7 @@ def _heuristicDistFunction(
     state: NPuzzleState,
     goal: NPuzzleGoal,
     goalMap: dict[int, tuple[int, int]],
-    heuristic: Callable[[NPuzzleState, Goal, dict[int, tuple[int, int]]], int],
+    heuristic: Callable[[NPuzzleState, NPuzzleGoal, dict[int, tuple[int, int]]], int],
 ) -> int:
     return heuristic(state, goal, goalMap)
 
@@ -225,7 +226,7 @@ def _heuristicDistFunction(
 import random
 
 
-def isSolvable(board: tuple[int], dimension: int) -> bool:
+def isSolvable(board: tuple[int, ...], dimension: int) -> bool:
     """
     Verifica se una configurazione dell'n-puzzle è risolvibile.
     """
@@ -248,7 +249,7 @@ def isSolvable(board: tuple[int], dimension: int) -> bool:
         return (inversions + blankRow) % 2 == 1
 
 
-def generateRandomSquareMatrix(dimension: int) -> tuple[int]:
+def generateRandomSquareMatrix(dimension: int) -> tuple[int, ...]:
     """
     Genera una configurazione casuale valida dell'n-puzzle come tupla piatta.
     """
@@ -259,7 +260,7 @@ def generateRandomSquareMatrix(dimension: int) -> tuple[int]:
             return tuple(numbers)
 
 
-def generateSortedSquareMatrix(dimension: int) -> tuple[int]:
+def generateSortedSquareMatrix(dimension: int) -> tuple[int, ...]:
     """
     Genera lo stato obiettivo ordinato dell'n-puzzle.
     """
