@@ -1,17 +1,13 @@
-import sys
 import threading as th
-from test.gameFormulations.pokemon.mossa import (
+from test.gameFormulations.pokemon.game import PokemonGame
+from test.gameFormulations.pokemon.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.pokemon import (
-    Pokemon,
-    PokemonGame,
-    PokemonPlayerAI,
-    PokemonPlayerUmano,
-)
+from test.gameFormulations.pokemon.players import PokemonPlayerAI, PokemonPlayerUmano
+from test.gameFormulations.pokemon.pokemon import Pokemon
 from test.gameFormulations.pokemon.pokemonUI import BattleGUI
 from test.gameFormulations.pokemon.statistiche import Statistica, Statistiche
 from test.gameFormulations.pokemon.tipo import Tipo
@@ -74,6 +70,7 @@ def creaGame1() -> PokemonGame:
         Tipo.ERBA,
         120,
         CategoriaMossaOffensiva.MOSSA_SPECIALE,
+        cooldown=1,
     )
     cura = MossaStato(
         "Cura",
@@ -127,11 +124,9 @@ def creaGame1() -> PokemonGame:
     )
 
     # allenatori (player)
-    player1 = PokemonPlayerAI(
+    player1 = PokemonPlayerUmano(
         "Blastoise's Allenatore",
         blastoise,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=20,
     )
     player2 = PokemonPlayerAI(
         "Charizard's Allenatore",
@@ -139,17 +134,15 @@ def creaGame1() -> PokemonGame:
         GameTheory.minimaxAlphaBetaDecision,
         limit=20,
     )
-    player3 = PokemonPlayerAI(
+    player3 = PokemonPlayerUmano(
         "Venusaur's Allenatore",
         venusaur,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=20,
     )
 
     # battaglia pokemon
     game = PokemonGame(
+        player3,
         player1,
-        player2,
     )
 
     return game
@@ -327,6 +320,7 @@ def main():
     runTkinter(waitTurnEvent)
 
     # tkThread.join()
+    print("Attendo la terminazione del solver thread...")
     waitTurnEvent.set()
     solverThread.join()
 

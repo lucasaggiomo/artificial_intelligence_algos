@@ -29,6 +29,8 @@ class GameTheory(TaskSolver):
         while not gameOver:
             turn += 1
             for player in self.game.players:
+
+                print("Attendo il prossimo turno...")
                 self.waitTurnEvent.wait()
                 self.waitTurnEvent.clear()
 

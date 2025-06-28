@@ -1,12 +1,10 @@
 import threading as th
 import tkinter as tk
-from test.gameFormulations.pokemon.mossa import Mossa
-from test.gameFormulations.pokemon.pokemon import (
-    Pokemon,
-    PokemonAction,
-    PokemonPlayerUmano,
-    PokemonState,
-)
+from test.gameFormulations.pokemon.mosse import Mossa
+from test.gameFormulations.pokemon.players import PokemonPlayerUmano
+from test.gameFormulations.pokemon.pokemon import Pokemon
+from test.gameFormulations.pokemon.pokemonAction import PokemonAction
+from test.gameFormulations.pokemon.pokemonState import PokemonState
 from test.gameFormulations.pokemon.statistiche import Statistica
 from tkinter import ttk
 from typing import Callable, Literal, Optional
@@ -152,16 +150,31 @@ class MainFrame(tk.Frame):
 
         # frame per le mosse
         self.move_buttons_frame = tk.Frame(self)
-        self.move_buttons_frame.pack(fill="x", side=tk.BOTTOM, anchor="center", padx=5, pady=5)
+        self.move_buttons_frame.pack(
+            fill="both",
+            expand=True,
+            side=tk.BOTTOM,
+            anchor="center",
+            padx=5,
+            pady=5,
+        )
+        self.move_buttons_frame.rowconfigure(0, weight=1)
+        self.move_buttons_frame.rowconfigure(1, weight=1)
+        self.move_buttons_frame.columnconfigure(0, weight=1)
+        self.move_buttons_frame.columnconfigure(1, weight=1)
 
         self.move_buttons: list[tk.Button] = []
         for i in range(4):
-            btn = tk.Button(self.move_buttons_frame, text=f"Mossa {i+1}", state=tk.DISABLED)
-            btn.grid(row=0, column=i, padx=5)
+            btn = tk.Button(
+                self.move_buttons_frame,
+                text=f"Mossa {i+1}",
+                state=tk.DISABLED,
+            )
+            btn.grid(row=i // 2, column=i % 2, padx=3, pady=3, sticky="nsew")
             self.move_buttons.append(btn)
 
         # log battaglia
-        self.log = tk.Text(self, height=20, state=tk.DISABLED)
+        self.log = tk.Text(self, height=15, state=tk.DISABLED)
         self.log.pack(fill="x", side=tk.BOTTOM, anchor="center", padx=5, pady=10)
 
         # pulsante per avviare il turno
@@ -212,15 +225,24 @@ class MainFrame(tk.Frame):
 
         self.append_log("-" * 30)
 
-    def show_moves(
+    def mostra_mosse(
         self,
         pokemon: Pokemon,
         on_move_selected_callback: Callable[[Mossa], None],
     ):
-        # aggiorna i bottoni con le mosse attuali del Pokémon
+        # aggiorna i bottoni con le mosse attuali del Pokémon, disabilitando le mosse non disponibili
+        mosseDisponibili = pokemon.getMosseDisponibili()
+
         for i, mossa in enumerate(pokemon.mosse):
-            self.move_buttons[i]["text"] = mossa.name
-            self.move_buttons[i]["state"] = tk.NORMAL
+            if mossa in mosseDisponibili:
+                self.move_buttons[i]["text"] = mossa.name
+                self.move_buttons[i]["state"] = tk.NORMAL
+            else:
+                self.move_buttons[i][
+                    "text"
+                ] = f"{mossa.name} - ({pokemon.getTurniDaAttendere(mossa)})"
+                self.move_buttons[i]["state"] = tk.DISABLED
+
             self.move_buttons[i]["command"] = lambda m=mossa: self.on_move_selected(
                 m, on_move_selected_callback
             )
@@ -232,7 +254,7 @@ class MainFrame(tk.Frame):
 
     def on_move_selected(
         self,
-        mossa,
+        mossa: Mossa,
         callback: Callable[[Mossa], None],
     ):
         # disabilita i bottoni
@@ -258,10 +280,10 @@ class BattleGUI:
         self.mainFrame = MainFrame(self.root, initialState, waitTurnEvent)
 
         if isinstance(initialState.allenatore1, PokemonPlayerUmano):
-            initialState.allenatore1.registerMoveCallback(self.mainFrame.show_moves)
+            initialState.allenatore1.registerMoveCallback(self.mainFrame.mostra_mosse)
 
         if isinstance(initialState.allenatore2, PokemonPlayerUmano):
-            initialState.allenatore2.registerMoveCallback(self.mainFrame.show_moves)
+            initialState.allenatore2.registerMoveCallback(self.mainFrame.mostra_mosse)
 
     def runMainLoop(self):
         self.root.mainloop()
@@ -273,4 +295,5 @@ class BattleGUI:
 
     def on_closing(self):
         print("DISTRUGGO...")
+        # self.mainFrame.on_move_selected(None, None)
         self.root.destroy()  # dealloca e chiude correttamente
