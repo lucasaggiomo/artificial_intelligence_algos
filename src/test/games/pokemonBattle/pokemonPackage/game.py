@@ -1,11 +1,11 @@
-from test.gameFormulations.pokemon.mosse import (
+from test.games.pokemonBattle.pokemonPackage.mosse import (
     CategoriaMossaStato,
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.players import PokemonPlayer
-from test.gameFormulations.pokemon.pokemonAction import PokemonAction
-from test.gameFormulations.pokemon.pokemonState import PokemonState
+from test.games.pokemonBattle.pokemonPackage.players import PokemonPlayer
+from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
+from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
 from typing import Callable, Optional
 
 from agentPackage.environment import Environment

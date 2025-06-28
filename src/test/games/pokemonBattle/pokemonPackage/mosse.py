@@ -1,8 +1,8 @@
 from abc import ABC
 from enum import StrEnum
-from test.gameFormulations.pokemon.elemento import Elemento
-from test.gameFormulations.pokemon.statistiche import Statistica
-from test.gameFormulations.pokemon.tipo import Tipo
+from test.games.pokemonBattle.pokemonPackage.elemento import Elemento
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
+from test.games.pokemonBattle.pokemonPackage.tipo import Tipo
 
 
 class MossaError(Exception):

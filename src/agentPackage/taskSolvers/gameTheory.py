@@ -1,4 +1,3 @@
-import math
 import random
 import textwrap
 import threading as th
@@ -14,7 +13,7 @@ type DecisionAlgorithmType = Callable[[Game, Player, set[State], float], Optiona
 
 
 class GameTheory(TaskSolver):
-    def __init__(self, game: Game, waitTurnEvent: th.Event):
+    def __init__(self, game: Game, waitTurnEvent: Optional[th.Event] = None):
         super().__init__(game)
         self.game = game
         self.currentState = game.initialState
@@ -31,8 +30,9 @@ class GameTheory(TaskSolver):
             for player in self.game.players:
 
                 print("Attendo il prossimo turno...")
-                self.waitTurnEvent.wait()
-                self.waitTurnEvent.clear()
+                if self.waitTurnEvent:
+                    self.waitTurnEvent.wait()
+                    self.waitTurnEvent.clear()
 
                 print("#######################################################")
                 print(f"Turno di {player.name}")

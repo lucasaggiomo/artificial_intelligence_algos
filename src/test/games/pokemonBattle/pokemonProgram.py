@@ -1,21 +1,24 @@
 import threading as th
-from test.gameFormulations.pokemon.game import PokemonGame
-from test.gameFormulations.pokemon.mosse import (
+from test.games.pokemonBattle.pokemonPackage.game import PokemonGame
+from test.games.pokemonBattle.pokemonPackage.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.players import PokemonPlayerAI, PokemonPlayerUmano
-from test.gameFormulations.pokemon.pokemon import Pokemon
-from test.gameFormulations.pokemon.pokemonUI import BattleGUI
-from test.gameFormulations.pokemon.statistiche import Statistica, Statistiche
-from test.gameFormulations.pokemon.tipo import Tipo
+from test.games.pokemonBattle.pokemonPackage.players import (
+    PokemonPlayerAI,
+    PokemonPlayerUmano,
+)
+from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
+from test.games.pokemonBattle.pokemonPackage.pokemonUI import BattleGUI
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
+from test.games.pokemonBattle.pokemonPackage.tipo import Tipo
 
 from agentPackage.taskSolvers.gameTheory import GameTheory
 
 
-def creaGame1() -> PokemonGame:
+def creaGame() -> PokemonGame:
     # mosse
     body_slam = MossaOffensiva(
         "Body Slam",
@@ -124,19 +127,20 @@ def creaGame1() -> PokemonGame:
     )
 
     # allenatori (player)
-    player1 = PokemonPlayerUmano(
+    player1 = PokemonPlayerAI(
         "Blastoise's Allenatore",
         blastoise,
+        limit=20,
     )
     player2 = PokemonPlayerAI(
         "Charizard's Allenatore",
         charizard,
-        GameTheory.minimaxAlphaBetaDecision,
         limit=20,
     )
     player3 = PokemonPlayerUmano(
         "Venusaur's Allenatore",
         venusaur,
+        # limit=20,
     )
 
     # battaglia pokemon
@@ -148,154 +152,9 @@ def creaGame1() -> PokemonGame:
     return game
 
 
-def creaGame2() -> PokemonGame:
-    # Mosse offensive
-    dragartigli = MossaOffensiva(
-        "Dragartigli",
-        Tipo.DRAGO,
-        80,
-        CategoriaMossaOffensiva.MOSSA_FISICA,
-    )
-
-    psicoraggio = MossaOffensiva(
-        "Psicoraggio",
-        Tipo.PSICO,
-        65,
-        CategoriaMossaOffensiva.MOSSA_SPECIALE,
-    )
-
-    zuffa = MossaOffensiva(
-        "Zuffa",
-        Tipo.LOTTA,
-        120,
-        CategoriaMossaOffensiva.MOSSA_FISICA,
-    )
-
-    metaltestata = MossaOffensiva(
-        "Metaltestata",
-        Tipo.ACCIAIO,
-        90,
-        CategoriaMossaOffensiva.MOSSA_FISICA,
-    )
-
-    morso = MossaOffensiva(
-        "Morso",
-        Tipo.BUIO,
-        60,
-        CategoriaMossaOffensiva.MOSSA_FISICA,
-    )
-
-    # Mosse di stato
-    cura_totale = MossaStato(
-        "Cura Totale",
-        Tipo.NORMALE,
-        categoria=CategoriaMossaStato.MOSSA_BUFF,
-        modificheStatistiche={Statistica.PUNTI_SALUTE: 70},
-    )
-
-    sacrificio_potere = MossaStato(
-        "Sacrificio di Potere",
-        Tipo.LOTTA,
-        categoria=CategoriaMossaStato.MOSSA_BUFF,
-        modificheStatistiche={
-            Statistica.ATTACCO: 25,
-            Statistica.ATTACCO_SPECIALE: 25,
-            Statistica.DIFESA: -10,
-            Statistica.DIFESA_SPECIALE: -10,
-        },
-    )
-
-    scudo_psichico = MossaStato(
-        "Scudo Psichico",
-        Tipo.PSICO,
-        categoria=CategoriaMossaStato.MOSSA_BUFF,
-        modificheStatistiche={
-            Statistica.DIFESA: 20,
-            Statistica.DIFESA_SPECIALE: 20,
-        },
-    )
-
-    abbassa_morale = MossaStato(
-        "Abbassa Morale",
-        Tipo.BUIO,
-        categoria=CategoriaMossaStato.MOSSA_DEBUFF,
-        modificheStatistiche={
-            Statistica.ATTACCO: -20,
-            Statistica.ATTACCO_SPECIALE: -20,
-        },
-    )
-
-    # Salamence - drago offensivo
-    salamence = Pokemon(
-        "Salamence",
-        {Tipo.DRAGO, Tipo.VOLANTE},
-        Statistiche(
-            punti_salute=130,
-            attacco=110,
-            difesa=80,
-            attacco_speciale=95,
-            difesa_speciale=80,
-        ),
-        {dragartigli, zuffa, sacrificio_potere, morso},
-    )
-
-    # Metagross – tank misto
-    metagross = Pokemon(
-        "Metagross",
-        {Tipo.ACCIAIO, Tipo.PSICO},
-        Statistiche(
-            punti_salute=140,
-            attacco=100,
-            difesa=110,
-            attacco_speciale=80,
-            difesa_speciale=100,
-        ),
-        {metaltestata, scudo_psichico, psicoraggio, cura_totale},
-    )
-
-    # Umbreon – difensore fastidioso
-    umbreon = Pokemon(
-        "Umbreon",
-        {Tipo.BUIO},
-        Statistiche(
-            punti_salute=160,
-            attacco=65,
-            difesa=110,
-            attacco_speciale=60,
-            difesa_speciale=130,
-        ),
-        {morso, abbassa_morale, cura_totale, scudo_psichico},
-    )
-
-    player_salamence = PokemonPlayerAI(
-        "Allenatore Salamence",
-        salamence,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=20,
-    )
-
-    player_metagross = PokemonPlayerAI(
-        "Allenatore Metagross",
-        metagross,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=20,
-    )
-
-    player_umbreon = PokemonPlayerAI(
-        "Allenatore Umbreon",
-        umbreon,
-        GameTheory.minimaxAlphaBetaDecision,
-        limit=20,
-    )
-
-    # game
-    game = PokemonGame(player_umbreon, player_metagross)
-    return game
-
-
 def main():
 
-    game = creaGame1()
+    game = creaGame()
 
     def runTkinter(waitTurnEvent: th.Event):
         app = BattleGUI(game.initialState, waitTurnEvent)

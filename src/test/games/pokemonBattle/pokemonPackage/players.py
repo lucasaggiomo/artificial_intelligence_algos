@@ -1,21 +1,21 @@
 import threading as th
-from test.gameFormulations.pokemon.allenatore import Allenatore
-from test.gameFormulations.pokemon.mosse import (
+from test.games.pokemonBattle.pokemonPackage.allenatore import Allenatore
+from test.games.pokemonBattle.pokemonPackage.mosse import (
     CategoriaMossaStato,
     Mossa,
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.pokemon import Pokemon
-from test.gameFormulations.pokemon.pokemonAction import PokemonAction
-from test.gameFormulations.pokemon.pokemonState import PokemonState
-from test.gameFormulations.pokemon.statistiche import Statistica
+from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
+from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
+from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
 from typing import Callable, Optional
 
 from agentPackage.player import Player
 from agentPackage.playerAI import PlayerAI
 from agentPackage.sensor import Sensor, StateSensor
-from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType
+from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
 
 NUM_DIGITS = 6  # per l'approssimazione di getUtility
 
@@ -78,7 +78,7 @@ class PokemonPlayerUmano(PokemonPlayer):
     def __init__(self, name: str, pokemon: Pokemon):
         PokemonPlayer.__init__(self, StateSensor(), name, pokemon)
         self.chosenMove = None
-        self._moveSelectedEvent = th.Event()
+        self._moveSelectedEvent: th.Event = th.Event()
         self._registerMoveCallback: Optional[Callable[[Pokemon, Callable[[Mossa], None]], None]] = (
             None
         )
@@ -90,7 +90,7 @@ class PokemonPlayerUmano(PokemonPlayer):
         """
         self._registerMoveCallback = callback
 
-    def chooseAction(self, game: "PokemonGame") -> PokemonAction: # type: ignore
+    def chooseAction(self, game: "PokemonGame") -> PokemonAction:  # type: ignore
         # azzera lo stato precedente
         self.mossaScelta = None
         self._moveSelectedEvent.clear()
@@ -137,7 +137,7 @@ class PokemonPlayerAI(
         self,
         name: str,
         pokemon: Pokemon,
-        decisionAlgorithm: DecisionAlgorithmType,
+        decisionAlgorithm: DecisionAlgorithmType = GameTheory.minimaxAlphaBetaDecision,
         limit: float = float("+inf"),
     ):
         sensor = StateSensor()

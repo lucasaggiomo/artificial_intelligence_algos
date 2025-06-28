@@ -1,17 +1,19 @@
 import threading as th
 import tkinter as tk
-from test.gameFormulations.pokemon.mosse import Mossa
-from test.gameFormulations.pokemon.players import PokemonPlayerUmano
-from test.gameFormulations.pokemon.pokemon import Pokemon
-from test.gameFormulations.pokemon.pokemonAction import PokemonAction
-from test.gameFormulations.pokemon.pokemonState import PokemonState
-from test.gameFormulations.pokemon.statistiche import Statistica
+from test.games.pokemonBattle.pokemonPackage.mosse import Mossa
+from test.games.pokemonBattle.pokemonPackage.players import PokemonPlayerUmano
+from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
+from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
+from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
 from tkinter import ttk
 from typing import Callable, Literal, Optional
 
 from PIL import Image, ImageTk
 
 ANIMAZIONE_MS = 1
+
+IMAGE_DIR_PATH = "./test/games/pokemonBattle/img"
 
 
 class PokemonDisplayFrame(tk.Frame):
@@ -37,8 +39,14 @@ class PokemonDisplayFrame(tk.Frame):
         self.main_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True, side=side, anchor=anchor)
 
         # canvas per terreno e immagine
-        self.canvas = tk.Canvas(self.main_frame, height=120, highlightthickness=0)
+        self.canvas = tk.Canvas(
+            self.main_frame,
+            height=120,
+            highlightthickness=0,
+        )
 
+        # disegna il terreno come ellisse
+        self.canvas.create_oval(10, 60, 140, 100, fill="gray70", outline="")
         if image_path:
             img = Image.open(image_path).resize((80, 80))
             self.image = ImageTk.PhotoImage(img)
@@ -113,7 +121,7 @@ class PokemonBattleDisplayFrame(tk.Frame):
             pokemon1,
             side=tk.BOTTOM,
             anchor="se",
-            image_path="./test/gameFormulations/pokemon/img/pikachu_back.png",
+            image_path=f"{IMAGE_DIR_PATH}/{pokemon1.name.lower()}_back.png",
             canvas_on_left=True,
         )
         self.display_p2 = PokemonDisplayFrame(
@@ -121,7 +129,7 @@ class PokemonBattleDisplayFrame(tk.Frame):
             pokemon2,
             side=tk.TOP,
             anchor="nw",
-            image_path="./test/gameFormulations/pokemon/img/bulbasaur_front.webp",
+            image_path=f"{IMAGE_DIR_PATH}/{pokemon2.name.lower()}_front.png",
             canvas_on_left=False,
         )
 
@@ -144,7 +152,10 @@ class MainFrame(tk.Frame):
     def setup_ui(self):
         # mostra i pokemon
         self.pokemon_battle = PokemonBattleDisplayFrame(
-            self, self.currentState.pokemon1, self.currentState.pokemon2, background="grey"
+            self,
+            self.currentState.pokemon1,
+            self.currentState.pokemon2,
+            background="grey",
         )
         self.pokemon_battle.pack(side=tk.TOP, anchor="center")
 

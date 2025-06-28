@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import textwrap
 import threading as th
-from test.gameFormulations.pokemon.elemento import Elemento
-from test.gameFormulations.pokemon.mosse import Mossa, MossaError, MossaStato
-from test.gameFormulations.pokemon.statistiche import Statistica, Statistiche
-from test.gameFormulations.pokemon.tipo import Tipo, get_moltiplicatore
+from test.games.pokemonBattle.pokemonPackage.elemento import Elemento
+from test.games.pokemonBattle.pokemonPackage.mosse import Mossa, MossaError, MossaStato
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
+from test.games.pokemonBattle.pokemonPackage.tipo import Tipo, get_moltiplicatore
 
 
 class Pokemon(Elemento):
@@ -36,10 +36,7 @@ class Pokemon(Elemento):
         # all'inizio sono tutte disponibili
         self.mosse_cooldown: dict[Mossa, int] = {mossa: 0 for mossa in mosse}
 
-        if maxPS >= 0:
-            self.maxPS = maxPS
-        else:
-            self.maxPS = self.statistiche[Statistica.PUNTI_SALUTE]
+        self.maxPS: int = maxPS if maxPS >= 0 else self.statistiche[Statistica.PUNTI_SALUTE]
 
     def getMosseDisponibili(self) -> set[Mossa]:
         """Restituisce le mosse che il pokemon può fare (eliminando eventuali mosse disabilitate)"""
@@ -57,7 +54,6 @@ class Pokemon(Elemento):
         Notifica il pokemon che un turno COMPLETO è passato (ovvero che tocca di nuovo a lui).
         Quindi il pokemon decrementa i cooldown delle mosse
         """
-        print(f"NOTIFICA SU {self.name}")
         for mossa in self.mosse_cooldown:
             self.mosse_cooldown[mossa] = max(0, self.mosse_cooldown[mossa] - 1)
 
@@ -84,7 +80,7 @@ class Pokemon(Elemento):
 
     def changeTo(self, other: Pokemon) -> None:
         """Metodo di comodo che rende un oggetto Pokemon già esistente uguale ad un pokemon in input"""
-        self.name = other.name
+        self.name: str = other.name
         self.tipi = set(other.tipi)
         self.statistiche.changeTo(other.statistiche)
         self.mosse = set(other.mosse)

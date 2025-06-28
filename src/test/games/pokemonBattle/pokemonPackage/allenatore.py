@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import textwrap
-from test.gameFormulations.pokemon.elemento import Elemento
-from test.gameFormulations.pokemon.pokemon import Pokemon
+from test.games.pokemonBattle.pokemonPackage.elemento import Elemento
+from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
 
 
 class Allenatore(Elemento):

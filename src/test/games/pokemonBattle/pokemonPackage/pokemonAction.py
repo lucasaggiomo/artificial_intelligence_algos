@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import textwrap
-from test.gameFormulations.pokemon.mosse import (
+from test.games.pokemonBattle.pokemonPackage.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     Mossa,
     MossaOffensiva,
     MossaStato,
 )
-from test.gameFormulations.pokemon.pokemon import Pokemon
-from test.gameFormulations.pokemon.statistiche import Statistica
-from test.gameFormulations.pokemon.tipo import get_moltiplicatore
+from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
+from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
+from test.games.pokemonBattle.pokemonPackage.tipo import get_moltiplicatore
 
 from agentPackage.action import Action
 

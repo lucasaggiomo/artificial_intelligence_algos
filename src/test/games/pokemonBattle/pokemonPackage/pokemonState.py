@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import textwrap
-from test.gameFormulations.pokemon.allenatore import Allenatore
-from test.gameFormulations.pokemon.pokemonAction import PokemonAction
+from test.games.pokemonBattle.pokemonPackage.allenatore import Allenatore
+from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
 from typing import Optional
 
 from agentPackage.state import State

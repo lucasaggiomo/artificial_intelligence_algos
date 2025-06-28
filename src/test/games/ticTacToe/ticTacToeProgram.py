@@ -1,10 +1,9 @@
 import sys
-from test.gameFormulations.ticTacToe import (
+from test.games.ticTacToe.ticTacToe import (
     Symbol,
     TicTacToeEnvironment,
     TicTacToeGame,
     TicTacToeGameTheory,
-    TicTacToePlayer,
     TicTacToePlayerAI,
     generateInitialState,
 )

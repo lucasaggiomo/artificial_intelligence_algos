@@ -1,32 +1,18 @@
 from collections.abc import Callable
-from test.problemFormulations.nPuzzle import (
-    NPuzzleAgent,
-    NPuzzleEnvironment,
-    NPuzzleGoal,
-    NPuzzleProblem,
-    NPuzzleProblemSolving,
-    generateRandomState,
-    generateSortedState,
-    manhattanDistance,
+from test.problems.googleMaps.googleMaps import (
+    CityState,
+    GoogleMapsAgent,
+    GoogleMapsEnvironment,
+    GoogleMapsGoal,
+    GoogleMapsProblem,
 )
 from threading import Event, Thread
-from typing import Optional
 
 from agentPackage.taskSolvers.problemSolving import (
     ProblemSolving,
     SearchAlgorithmType,
     SolutionType,
 )
-
-# import test.problemFormulations.googleMaps as maps
-# from test.problemFormulations.googleMaps import (
-#     CityState,
-#     MoveAction,
-#     transitionModel,
-#     actionsPerState,
-#     pathCostFunction,
-#     heuristicDistFunction,
-# )
 
 
 def capitalize_first_letter(string: str) -> str:
@@ -79,42 +65,36 @@ def main():
     def reset():
         environment.currentState = initialState
 
-    # Definizione del problema
-    # initialState = s((s.DIRTY << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
-    # goalState = s((s.CLEAN << s.LEFT) | (s.CLEAN << s.RIGHT) | (s.RIGHT << s.VACUUM))
-
-    DIMENSION = 3
-    # initialState = NPuzzleState((3, 4, 1, 5, 7, 8, 0, 6, 2), 3)
-    initialState = generateRandomState(DIMENSION)
-    goalState = generateSortedState(DIMENSION)
-
-    # initialState = CityState('Arad')
-    # goalState = CityState('Bucharest')
-    goal = NPuzzleGoal(goalState)
-    environment = NPuzzleEnvironment(initialState)
-    agent = NPuzzleAgent()
-    problem = NPuzzleProblem(initialState, environment, [agent], goal, manhattanDistance)
-    solver = NPuzzleProblemSolving(agent, problem)
+    initialState = CityState("Arad")
+    goalState = CityState("Bucharest")
+    goal = GoogleMapsGoal(goalState)
+    environment = GoogleMapsEnvironment(initialState)
+    agent = GoogleMapsAgent()
+    problem = GoogleMapsProblem(initialState, environment, [agent], goal)
+    solver = ProblemSolving(agent, problem)
 
     print(f"-------------------------- PROBLEMA --------------------------")
     print(problem)
 
     algorithmsToTry = [
-        # "breadthFirstSearch",
-        # "depthFirstSearch",
-        # "depthFirstSearchRecursive",
-        # "iterativeDeepeningSearch",
+        "breadthFirstSearch",
+        "depthFirstSearch",
+        "depthFirstSearchRecursive",
+        "iterativeDeepeningSearch",
         "uniformSearch",
         "greedySearch",
         "aStarSearch",
     ]
 
-    with open("./test/output.txt", mode="w") as logger:
+    with open("./test/nPuzzleOutput.txt", mode="w") as logger:
 
         def log(message: str, logToStdout: bool = True):
             if logToStdout:
                 print(message)
             logger.write(f"{message}\n")
+
+        algorithmsTimeMap: dict[str, float] = {}
+        algorithmsCostMap: dict[str, float] = {}
 
         for algorithm in algorithmsToTry:
             name = capitalize_first_letter(algorithm)
@@ -127,32 +107,58 @@ def main():
                 solution = runWithTimeout(searchAlgorithm, problem, timeout=10, log=log)
                 end = timer()
 
-                log(f"Search algorithm time: {end - start}")
+                time = end - start
+                log(f"Search algorithm time: {time}s")
+
+                if solution is None:
+                    raise ValueError("Solution era None")
 
                 if solution is ProblemSolving.CUTOFF:
                     log(
                         "Nessuna soluzione trovata (non e' stato visitato tutto l'albero degli stati a causa di timeout o errori interni)"
                     )
+                    time = float("+inf")
+                    cost = float("+inf")
                 elif solution is ProblemSolving.NO_SOLUTIONS:
                     log("Non ci sono soluzioni")
-                elif solution is None:
-                    print("Solution era None")
-                    return
+                    time = float("+inf")
+                    cost = float("+inf")
                 else:
                     actions, cost = solution
                     if actions == None:
-                        print("Actiosn era None")
+                        print("Actions era None")
                         return
 
                     log(f"Soluzione trovata (Costo {cost})")
                     for i in range(len(actions)):
                         log(f"{f'{i+1}.':<5}\t{actions[i]}", logToStdout=False)
 
+                algorithmsTimeMap[name] = time
+                algorithmsCostMap[name] = cost
+
                 log("-----------------------------------")
             except Exception as e:
                 log(f"Algorithm {name} did not succeed: {e}")
             reset()
             log("")
+
+        # ordina per costo crescente e tempo decrescente
+        sorted_by_cost = sorted(algorithmsCostMap.items(), key=lambda item: item[1])
+        sorted_by_time = sorted(algorithmsTimeMap.items(), key=lambda item: item[1])
+
+        # trova il costo minimo e tempo massimo
+        min_cost = sorted_by_cost[0][1]
+        max_time = sorted_by_time[0][1]
+
+        # trova tutti gli algoritmi con quel costo o tempo
+        cheapest_algos = [name for name, cost in sorted_by_cost if cost == min_cost]
+        fastest_algos = [name for name, time in sorted_by_time if time == max_time]
+
+        # mostra i risultati
+        log(f"Algoritmo(i) piu' veloce(i) con tempo {max_time}s: {', '.join(fastest_algos)}")
+        log(
+            f"Algoritmo(i) con soluzione meno costosa con costo {min_cost}: {', '.join(cheapest_algos)}"
+        )
 
 
 if __name__ == "__main__":

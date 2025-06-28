@@ -23,7 +23,7 @@ class Statistiche:
         attacco_speciale: int = 50,
         difesa_speciale: int = 50,
     ):
-        self._stats = {
+        self._stats: dict[Statistica, int] = {
             Statistica.PUNTI_SALUTE: punti_salute,
             Statistica.ATTACCO: attacco,
             Statistica.DIFESA: difesa,
