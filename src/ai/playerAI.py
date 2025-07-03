@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from agentPackage.player import Player
-from agentPackage.sensor import Sensor
-from agentPackage.tasks.game import Game
-from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType
+from ai.player import Player
+from ai.sensor import Sensor
+from ai.tasks.game import Game
+from ai.taskSolvers.gameTheory import DecisionAlgorithmType
 
 
 class PlayerAI(Player, ABC):

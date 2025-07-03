@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from agentPackage.action import Action
-from agentPackage.agent import Agent
-from agentPackage.environment import Environment
-from agentPackage.goal import Goal
-from agentPackage.sensor import StateSensor
-from agentPackage.state import State
-from agentPackage.tasks.problem import Problem
+from ai.action import Action
+from ai.agent import Agent
+from ai.environment import Environment
+from ai.goal import Goal
+from ai.sensor import StateSensor
+from ai.state import State
+from ai.tasks.problem import Problem
 
 
 class VacuumState(State):

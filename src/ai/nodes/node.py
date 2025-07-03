@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from agentPackage.action import Action
-from agentPackage.state import State
-from agentPackage.tasks.task import Task
+from ai.action import Action
+from ai.state import State
+from ai.tasks.task import Task
 
 
 class Node(ABC):

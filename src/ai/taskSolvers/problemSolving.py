@@ -4,12 +4,12 @@ from heapq import heappop, heappush
 from threading import Event
 from typing import Optional
 
-from agentPackage.action import Action
-from agentPackage.agent import Agent
-from agentPackage.nodes.problemNode import ProblemNode
-from agentPackage.state import State
-from agentPackage.tasks.problem import Problem
-from agentPackage.taskSolvers.taskSolver import TaskSolver
+from ai.action import Action
+from ai.agent import Agent
+from ai.nodes.problemNode import ProblemNode
+from ai.state import State
+from ai.tasks.problem import Problem
+from ai.taskSolvers.taskSolver import TaskSolver
 
 type SolutionType = Optional[tuple[Optional[list[Action]], float]]
 type SearchAlgorithmType = Callable[[Problem, Event], SolutionType]

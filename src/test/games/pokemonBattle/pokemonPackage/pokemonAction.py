@@ -12,7 +12,7 @@ from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
 from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
 from test.games.pokemonBattle.pokemonPackage.tipo import get_moltiplicatore
 
-from agentPackage.action import Action
+from ai.action import Action
 
 
 class PokemonAction(Action):

@@ -1,7 +1,6 @@
-from agentPackage.action import Action
-from agentPackage.environment import Environment
-from agentPackage.perception import Perception
-from agentPackage.sensor import Sensor
+from ai.action import Action
+from ai.environment import Environment
+from ai.sensor import Perception, Sensor
 
 
 class Agent:

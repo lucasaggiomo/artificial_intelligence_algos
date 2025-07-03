@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from agentPackage.action import Action
-from agentPackage.agent import Agent
-from agentPackage.sensor import Sensor
-from agentPackage.state import State
+from ai.action import Action
+from ai.agent import Agent
+from ai.sensor import Sensor
+from ai.state import State
 
 
 class Player(Agent, ABC):

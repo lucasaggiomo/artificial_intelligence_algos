@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from agentPackage.tasks.task import Task
+from ai.tasks.task import Task
 
 
 # useless for now

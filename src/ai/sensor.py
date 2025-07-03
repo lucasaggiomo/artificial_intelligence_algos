@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 
-from agentPackage.environment import Environment
-from agentPackage.perception import Perception
-from agentPackage.state import State
+from ai.environment import Environment
+from ai.state import State
 
+
+class Perception(State):
+    def __str__(self):
+        return f"Percezione: l'agente si trova in {self}"
 
 class Sensor(ABC):
     @abstractmethod

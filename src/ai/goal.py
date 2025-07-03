@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from agentPackage.state import State
+from ai.state import State
 
 
 class Goal(ABC):

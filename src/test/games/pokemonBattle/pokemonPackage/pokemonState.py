@@ -5,7 +5,7 @@ from test.games.pokemonBattle.pokemonPackage.allenatore import Allenatore
 from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
 from typing import Optional
 
-from agentPackage.state import State
+from ai.state import State
 
 
 class PokemonState(State):

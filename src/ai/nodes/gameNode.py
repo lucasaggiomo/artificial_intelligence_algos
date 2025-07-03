@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Optional, cast
 
-from agentPackage.action import Action
-from agentPackage.nodes.node import Node
-from agentPackage.state import State
-from agentPackage.tasks.game import Game
+from ai.action import Action
+from ai.nodes.node import Node
+from ai.state import State
+from ai.tasks.game import Game
 
 
 class GameNode(Node):

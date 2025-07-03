@@ -5,15 +5,14 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import cast
 
-from agentPackage.action import Action
-from agentPackage.environment import Environment
-from agentPackage.perception import Perception
-from agentPackage.player import Player
-from agentPackage.playerAI import PlayerAI
-from agentPackage.sensor import Sensor, StateSensor
-from agentPackage.state import State
-from agentPackage.tasks.game import Game
-from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
+from ai.action import Action
+from ai.environment import Environment
+from ai.player import Player
+from ai.playerAI import PlayerAI
+from ai.sensor import Perception, Sensor, StateSensor
+from ai.state import State
+from ai.tasks.game import Game
+from ai.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
 
 
 class Symbol(StrEnum):

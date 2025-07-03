@@ -12,10 +12,10 @@ from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
 from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
 from typing import Callable, Optional
 
-from agentPackage.player import Player
-from agentPackage.playerAI import PlayerAI
-from agentPackage.sensor import Sensor, StateSensor
-from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
+from ai.player import Player
+from ai.playerAI import PlayerAI
+from ai.sensor import Sensor, StateSensor
+from ai.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
 
 NUM_DIGITS = 6  # per l'approssimazione di getUtility
 

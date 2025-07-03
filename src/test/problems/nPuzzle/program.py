@@ -12,7 +12,7 @@ from test.problems.nPuzzle.nPuzzle import (
 from threading import Event, Thread
 from typing import Optional
 
-from agentPackage.taskSolvers.problemSolving import (
+from ai.taskSolvers.problemSolving import (
     ProblemSolving,
     SearchAlgorithmType,
     SolutionType,

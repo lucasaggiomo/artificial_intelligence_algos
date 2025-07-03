@@ -1,8 +1,8 @@
 import textwrap
 from abc import ABC, abstractmethod
 
-from agentPackage.action import Action
-from agentPackage.state import State
+from ai.action import Action
+from ai.state import State
 
 
 class Environment(ABC):

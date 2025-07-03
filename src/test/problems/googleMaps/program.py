@@ -8,7 +8,7 @@ from test.problems.googleMaps.googleMaps import (
 )
 from threading import Event, Thread
 
-from agentPackage.taskSolvers.problemSolving import (
+from ai.taskSolvers.problemSolving import (
     ProblemSolving,
     SearchAlgorithmType,
     SolutionType,
