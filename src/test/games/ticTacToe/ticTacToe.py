@@ -82,8 +82,7 @@ class TicTacToeAction(Action):
 
 
 class TicTacToeEnvironment(Environment):
-    def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
-        return _transitionModel(state, action)
+    pass
 
 
 class TicTacToeGame(Game):

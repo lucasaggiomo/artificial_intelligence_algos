@@ -1,11 +1,11 @@
 import threading as th
 import tkinter as tk
-from test.games.pokemonBattle.pokemonPackage.mosse import Mossa
-from test.games.pokemonBattle.pokemonPackage.players import PokemonPlayerUmano
-from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
-from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
-from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
+from test.games.pokemonBattle.ai_impl.players import PokemonPlayerUmano
+from test.games.pokemonBattle.ai_impl.pokemonAction import PokemonAction
+from test.games.pokemonBattle.ai_impl.pokemonState import PokemonState
+from test.games.pokemonBattle.core.mosse import Mossa
+from test.games.pokemonBattle.core.pokemon import Pokemon
+from test.games.pokemonBattle.core.statistiche import Statistica
 from tkinter import ttk
 from typing import Callable, Literal, Optional
 

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import textwrap
-from test.games.pokemonBattle.pokemonPackage.mosse import (
+from test.games.pokemonBattle.core.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     Mossa,
     MossaOffensiva,
     MossaStato,
 )
-from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
-from test.games.pokemonBattle.pokemonPackage.tipo import get_moltiplicatore
+from test.games.pokemonBattle.core.pokemon import Pokemon
+from test.games.pokemonBattle.core.statistiche import Statistica
+from test.games.pokemonBattle.core.tipo import Tipo
 
 from ai.core.action import Action
 
@@ -82,7 +82,7 @@ class PokemonAction(Action):
         # CALCOLO MOLTIPLICATORE
         moltiplicatore = 1.0
         for tipoTarget in self.target.tipi:
-            moltiplicatore *= get_moltiplicatore(self.mossa.tipo, tipoTarget)
+            moltiplicatore *= Tipo.get_moltiplicatore(self.mossa.tipo, tipoTarget)
         self.moltiplicatorePuro = moltiplicatore
 
         # il danno incrementato se il pokemon attaccante è dello stesso tipo della mossa
@@ -108,12 +108,6 @@ class PokemonAction(Action):
 
         self.danno = danno
         return danno
-
-    def changeTo(self, other: PokemonAction) -> None:
-        """Metodo di comodo che rende un oggetto PokemonAction già esistente uguale ad un'azione in input"""
-        self.pokemon.changeTo(other.pokemon)
-        self.mossa = other.mossa
-        self.target.changeTo(other.target)
 
     def __hash__(self) -> int:
         prime = 31
@@ -170,6 +164,12 @@ class PokemonAction(Action):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+    def _changeTo(self, other: PokemonAction) -> None:
+        """Metodo di comodo che rende un oggetto PokemonAction già esistente uguale ad un'azione in input"""
+        self.pokemon._changeTo(other.pokemon)
+        self.mossa = other.mossa
+        self.target._changeTo(other.target)
 
 
 def _getTextFromMoltiplicatore(moltiplicatore: float) -> str:

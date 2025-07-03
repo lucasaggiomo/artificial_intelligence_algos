@@ -22,7 +22,7 @@ class GameTheory(TaskSolver):
     def startGame(self):
         gameOver = False
         print("STATO INIZIALE:\n")
-        self.game.environment.render()
+        print(str(self.game.environment))
         print("Inizia il gioco\n")
         turn = 0
         while not gameOver:
@@ -46,11 +46,11 @@ class GameTheory(TaskSolver):
                 print("AZIONE SCELTA: " + str(action))
 
                 # ESECUZIONE
-                player.executeAction(action, self.game.environment)
-                self.currentState = self.game.environment.getCurrentState()
+                player.executeAction(action, self.game)
+                self.currentState = self.game.environment.currentState
 
                 # STAMPA
-                self.game.environment.render()
+                print(str(self.game.environment))
 
                 # CONTEROLLO DI GAME OVER
                 if self.game.terminalTest(self.currentState):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import StrEnum
 
 
@@ -19,6 +21,13 @@ class Tipo(StrEnum):
     DRAGO = "Drago"
     BUIO = "Buio"
     ACCIAIO = "Acciaio"
+
+    @staticmethod
+    def get_moltiplicatore(tipo_attaccante: Tipo, tipo_difensore: Tipo) -> float:
+        """
+        Restituisce il moltiplicatore del danno in base al tipo di partenza e al tipo di destinazione
+        """
+        return MATRICE_TIPI[tipo_attaccante].get(tipo_difensore, 1.0)
 
 
 MATRICE_TIPI: dict[Tipo, dict[Tipo, float]] = {
@@ -167,10 +176,3 @@ MATRICE_TIPI: dict[Tipo, dict[Tipo, float]] = {
         Tipo.ACCIAIO: 0.5,
     },
 }
-
-
-def get_moltiplicatore(tipo_attaccante: Tipo, tipo_difensore: Tipo) -> float:
-    """
-    Restituisce il moltiplicatore del danno in base al tipo di partenza e al tipo di destinazione
-    """
-    return MATRICE_TIPI[tipo_attaccante].get(tipo_difensore, 1.0)

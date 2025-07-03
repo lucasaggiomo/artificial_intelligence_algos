@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import textwrap
-import threading as th
-from test.games.pokemonBattle.pokemonPackage.elemento import Elemento
-from test.games.pokemonBattle.pokemonPackage.mosse import Mossa, MossaError, MossaStato
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
-from test.games.pokemonBattle.pokemonPackage.tipo import Tipo, get_moltiplicatore
+from test.games.pokemonBattle.core.elemento import Elemento
+from test.games.pokemonBattle.core.mosse import Mossa, MossaError, MossaStato
+from test.games.pokemonBattle.core.statistiche import Statistica, Statistiche
+from test.games.pokemonBattle.core.tipo import Tipo
 
 
 class Pokemon(Elemento):
@@ -67,27 +66,7 @@ class Pokemon(Elemento):
 
         self.mosse_cooldown[mossa] = mossa.cooldown + 1
 
-    def copy(self) -> Pokemon:
-        newPokemon = Pokemon(
-            self.name,
-            self.tipi.copy(),
-            self.statistiche.copy(),
-            self.mosse.copy(),
-            self.maxPS,
-        )
-        newPokemon.mosse_cooldown = self.mosse_cooldown.copy()
-        return newPokemon
-
-    def changeTo(self, other: Pokemon) -> None:
-        """Metodo di comodo che rende un oggetto Pokemon già esistente uguale ad un pokemon in input"""
-        self.name: str = other.name
-        self.tipi = set(other.tipi)
-        self.statistiche.changeTo(other.statistiche)
-        self.mosse = set(other.mosse)
-        self.maxPS = other.maxPS
-        self.mosse_cooldown = other.mosse_cooldown.copy()
-
-    def infliggiDanno(self, danno: int) -> int:
+    def subisciDanno(self, danno: int) -> int:
         """
         Infligge il danno e restituisce il danno totale inflitto
         (in generale è diverso dal danno in input, in quanto i PS non possono scendere sotto 0)
@@ -157,3 +136,23 @@ class Pokemon(Elemento):
             "\n]"
         )
         return f"{self.name}: [\n" f"{textwrap.indent(internalText,"\t")}" f"\n]"
+    
+    def _copy(self) -> Pokemon:
+        newPokemon = Pokemon(
+            self.name,
+            self.tipi.copy(),
+            self.statistiche._copy(),
+            self.mosse.copy(),
+            self.maxPS,
+        )
+        newPokemon.mosse_cooldown = self.mosse_cooldown.copy()
+        return newPokemon
+
+    def _changeTo(self, other: Pokemon) -> None:
+        """Metodo di comodo che rende un oggetto Pokemon già esistente uguale ad un pokemon in input"""
+        self.name: str = other.name
+        self.tipi = set(other.tipi)
+        self.statistiche._changeTo(other.statistiche)
+        self.mosse = set(other.mosse)
+        self.maxPS = other.maxPS
+        self.mosse_cooldown = other.mosse_cooldown.copy()

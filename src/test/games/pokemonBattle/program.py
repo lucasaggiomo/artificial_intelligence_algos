@@ -1,19 +1,16 @@
 import threading as th
-from test.games.pokemonBattle.pokemonPackage.game import PokemonGame
-from test.games.pokemonBattle.pokemonPackage.mosse import (
+from test.games.pokemonBattle.ai_impl.game import PokemonGame
+from test.games.pokemonBattle.ai_impl.players import PokemonPlayerAI, PokemonPlayerUmano
+from test.games.pokemonBattle.core.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     MossaOffensiva,
     MossaStato,
 )
-from test.games.pokemonBattle.pokemonPackage.players import (
-    PokemonPlayerAI,
-    PokemonPlayerUmano,
-)
-from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
-from test.games.pokemonBattle.pokemonPackage.pokemonUI import BattleGUI
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
-from test.games.pokemonBattle.pokemonPackage.tipo import Tipo
+from test.games.pokemonBattle.core.pokemon import Pokemon
+from test.games.pokemonBattle.core.statistiche import Statistica, Statistiche
+from test.games.pokemonBattle.core.tipo import Tipo
+from test.games.pokemonBattle.ui.pokemonUI import BattleGUI
 
 from ai.games.gameTheory import GameTheory
 
@@ -107,7 +104,7 @@ def creaGame() -> PokemonGame:
         Statistiche(
             punti_salute=150, attacco=60, difesa=120, attacco_speciale=65, difesa_speciale=130
         ),
-        {body_slam, pistolacqua, skull_bash, difesa_speciale},
+        {body_slam, pistolacqua, skull_bash, prepotenza_speciale},
     )
     charizard = Pokemon(
         "Charizard",
@@ -130,23 +127,23 @@ def creaGame() -> PokemonGame:
     player1 = PokemonPlayerAI(
         "Blastoise's Allenatore",
         blastoise,
-        limit=20,
+        # limit=20,
     )
     player2 = PokemonPlayerAI(
         "Charizard's Allenatore",
         charizard,
         limit=20,
     )
-    player3 = PokemonPlayerUmano(
+    player3 = PokemonPlayerAI(
         "Venusaur's Allenatore",
         venusaur,
-        # limit=20,
+        limit=20,
     )
 
     # battaglia pokemon
     game = PokemonGame(
-        player3,
         player1,
+        player3,
     )
 
     return game
@@ -158,7 +155,7 @@ def main():
 
     def runTkinter(waitTurnEvent: th.Event):
         app = BattleGUI(game.initialState, waitTurnEvent)
-        game.setUpdateCallback(app.update_callback)
+        game.environment._updateCallback = app.update_callback
         app.runMainLoop()
 
     def solve():

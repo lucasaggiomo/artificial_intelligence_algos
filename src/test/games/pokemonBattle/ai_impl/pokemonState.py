@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import textwrap
-from test.games.pokemonBattle.pokemonPackage.allenatore import Allenatore
-from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
+from test.games.pokemonBattle.ai_impl.pokemonAction import PokemonAction
+from test.games.pokemonBattle.core.allenatore import Allenatore
 from typing import Optional
 
 from ai.core.state import State
@@ -19,25 +19,7 @@ class PokemonState(State):
         self.allenatore1 = allenatore1
         self.allenatore2 = allenatore2
         self.turno = turno
-        self.azione_precedente = azione_precedente
-
-    def copy(self) -> PokemonState:
-        return PokemonState(
-            self.allenatore1.copy(),
-            self.allenatore2.copy(),
-            self.turno,
-        )
-
-    def changeTo(self, other: PokemonState) -> None:
-        """Metodo di comodo che rende un oggetto PokemonState già esistente uguale ad uno stato in input"""
-        self.allenatore1.changeTo(other.allenatore1)
-        self.allenatore2.changeTo(other.allenatore2)
-        self.turno = other.turno
-        if not other.azione_precedente:
-            self.azione_precedente = None
-        elif self.azione_precedente:
-            self.azione_precedente.changeTo(other.azione_precedente)  # l'azione non viene copiata
-            # self.azione_precedente.changeTo(other.azione_precedente)
+        self._azione_precedente = azione_precedente
 
     # per accedere in maniera più semplice ai pokemon degli allenatori
     # sono property (per essere readonly)
@@ -67,7 +49,7 @@ class PokemonState(State):
 
     def __str__(self) -> str:
         return (
-            f"Mossa precedente: [\n{textwrap.indent(str(self.azione_precedente), '\t')}\n]\n"
+            f"Mossa precedente: [\n{textwrap.indent(str(self._azione_precedente), '\t')}\n]\n"
             f"Allenatore1: {str(self.allenatore1)}\n"
             f"Allenatore2: {str(self.allenatore2)}\n"
             f"Turno di: {self.allenatore1.name if self.turno % 2 == 0 else self.allenatore2.name}"
@@ -76,3 +58,21 @@ class PokemonState(State):
 
     def __repr__(self) -> str:
         return str(self)
+    
+    def _copy(self) -> PokemonState:
+        return PokemonState(
+            self.allenatore1._copy(),
+            self.allenatore2._copy(),
+            self.turno,
+        )
+
+    def _changeTo(self, other: PokemonState) -> None:
+        """Metodo di comodo che rende un oggetto PokemonState già esistente uguale ad uno stato in input"""
+        self.allenatore1._changeTo(other.allenatore1)
+        self.allenatore2._changeTo(other.allenatore2)
+        self.turno = other.turno
+        if not other._azione_precedente:
+            self._azione_precedente = None
+        elif self._azione_precedente:
+            self._azione_precedente._changeTo(other._azione_precedente)  # l'azione non viene copiata
+            # self.azione_precedente.changeTo(other.azione_precedente)

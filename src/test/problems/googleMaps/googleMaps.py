@@ -5,10 +5,10 @@ from typing import Callable
 from ai.core.action import Action
 from ai.core.agent import Agent
 from ai.core.environment import Environment
-from ai.core.goal import Goal
 from ai.core.sensor import StateSensor
 from ai.core.state import State
-from ai.search.problem import Problem
+from ai.problems.goal import Goal
+from ai.problems.problem import Problem
 
 
 class CityState(State):
@@ -56,8 +56,7 @@ class GoogleMapsGoal(Goal):
 
 
 class GoogleMapsEnvironment(Environment):
-    def transitionModel(self, state: CityState, action: MoveAction) -> CityState:
-        return _transitionModel(state, action)
+    pass
 
 
 class GoogleMapsAgent(Agent):

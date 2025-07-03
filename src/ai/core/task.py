@@ -11,7 +11,12 @@ from ai.core.state import State
 
 class Task(ABC):
     @abstractmethod
-    def __init__(self, initialState: State, environment: Environment, agents: Sequence[Agent]):
+    def __init__(
+        self,
+        initialState: State,
+        environment: Environment,
+        agents: Sequence[Agent],
+    ):
         """
         **initialState**: *State*                                     - stato di partenza\\
         **environment**: *Environment*                                - ambiente del sistema\\

@@ -5,11 +5,11 @@ from collections.abc import Callable
 from ai.core.action import Action
 from ai.core.agent import Agent
 from ai.core.environment import Environment
-from ai.core.goal import Goal
 from ai.core.sensor import StateSensor
 from ai.core.state import State
-from ai.search.problem import Problem
-from ai.search.problemSolving import ProblemSolving
+from ai.problems.goal import Goal
+from ai.problems.problem import Problem
+from ai.problems.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):
@@ -82,8 +82,7 @@ class NPuzzleAction(Action):
 
 
 class NPuzzleEnvironment(Environment):
-    def transitionModel(self, state: NPuzzleState, action: NPuzzleAction) -> NPuzzleState:
-        return _transitionModel(state, action)
+    pass
 
 
 class NPuzzleGoal(Goal):

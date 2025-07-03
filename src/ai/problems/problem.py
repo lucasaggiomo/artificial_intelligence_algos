@@ -4,9 +4,9 @@ from typing import Sequence
 from ai.core.action import Action
 from ai.core.agent import Agent
 from ai.core.environment import Environment
-from ai.core.goal import Goal
 from ai.core.state import State
 from ai.core.task import Task
+from ai.problems.goal import Goal
 
 
 class Problem(Task, ABC):

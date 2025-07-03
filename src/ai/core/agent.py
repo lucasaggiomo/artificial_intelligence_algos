@@ -11,6 +11,6 @@ class Agent:
         """Restituisce una **Perception** a partire da un **environment**, utilizzando il suo **self.sensor**"""
         return self.sensor.percept(environment)
 
-    def executeAction(self, action: Action, environment: Environment):
-        """Esegue l'azione **action** sull'ambiente **environment**"""
-        environment.evolveState(action)
+    def executeAction(self, action: Action, task: "Task"): # type: ignore
+        """Esegue l'azione **action** sull'ambiente **environment**. Richiede il task per la logica delle azioni"""
+        task.environment.evolveState(action, task)

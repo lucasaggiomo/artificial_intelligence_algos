@@ -18,4 +18,4 @@ class StateSensor(Sensor):
     """Sensore semplice che restituisce lo stato corrente dell'ambiente"""
 
     def percept(self, environment: Environment) -> State:
-        return environment.getCurrentState()
+        return environment.currentState

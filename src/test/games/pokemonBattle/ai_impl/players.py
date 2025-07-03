@@ -1,15 +1,15 @@
 import threading as th
-from test.games.pokemonBattle.pokemonPackage.allenatore import Allenatore
-from test.games.pokemonBattle.pokemonPackage.mosse import (
+from test.games.pokemonBattle.ai_impl.pokemonAction import PokemonAction
+from test.games.pokemonBattle.ai_impl.pokemonState import PokemonState
+from test.games.pokemonBattle.core.allenatore import Allenatore
+from test.games.pokemonBattle.core.mosse import (
     CategoriaMossaStato,
     Mossa,
     MossaOffensiva,
     MossaStato,
 )
-from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
-from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
-from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica
+from test.games.pokemonBattle.core.pokemon import Pokemon
+from test.games.pokemonBattle.core.statistiche import Statistica
 from typing import Callable, Optional
 
 from ai.core.sensor import Sensor, StateSensor

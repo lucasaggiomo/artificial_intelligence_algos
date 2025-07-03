@@ -9,18 +9,10 @@ class Environment(ABC):
     def __init__(self, initialState: State):
         self.currentState = initialState
 
-    @abstractmethod
-    def transitionModel(self, state: State, action: Action) -> State:
-        """Associa ad ogni azione, a partire da uno stato di partenza, lo stato successivo"""
-        pass
-
-    def evolveState(self, action: Action) -> State:
+    def evolveState(self, action: Action, task: "Task") -> State:  # type: ignore
         """Evolve lo stato corrente, eseguendo l'azione richiesta"""
-        self.currentState = self.transitionModel(self.currentState, action)
+        self.currentState = task.transitionModel(self.currentState, action)
         return self.currentState
 
-    def getCurrentState(self) -> State:
-        return self.currentState
-
-    def render(self):
-        print(f"Ambiente attuale:\n{textwrap.indent(str(self.currentState), "\t")}\n")
+    def __str__(self) -> str:
+        return f"Ambiente attuale:\n{textwrap.indent(str(self.currentState), "\t")}\n"

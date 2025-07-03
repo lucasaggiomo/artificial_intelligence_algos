@@ -8,8 +8,8 @@ from ai.core.action import Action
 from ai.core.agent import Agent
 from ai.core.state import State
 from ai.core.taskSolver import TaskSolver
-from ai.search.problem import Problem
-from ai.search.problemNode import ProblemNode
+from ai.problems.problem import Problem
+from ai.problems.problemNode import ProblemNode
 
 type SolutionType = Optional[tuple[Optional[list[Action]], float]]
 type SearchAlgorithmType = Callable[[Problem, Event], SolutionType]
@@ -58,10 +58,10 @@ class ProblemSolving(TaskSolver):
 
         if executeSolution:
             print("Inizio l'esecuzione...")
-            self.problem.environment.render()
+            print(str(self.problem.environment))
             for action in actions:
-                self.agent.executeAction(action, self.problem.environment)
-                self.currenState = self.problem.environment.getCurrentState()
+                self.agent.executeAction(action, self.problem)
+                self.currenState = self.problem.environment.currentState
 
     @staticmethod
     def backtrackSolution(node: ProblemNode) -> SolutionType:
