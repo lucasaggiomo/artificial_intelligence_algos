@@ -8,11 +8,7 @@ from test.problems.googleMaps.googleMaps import (
 )
 from threading import Event, Thread
 
-from ai.taskSolvers.problemSolving import (
-    ProblemSolving,
-    SearchAlgorithmType,
-    SolutionType,
-)
+from ai.search.problemSolving import ProblemSolving, SearchAlgorithmType, SolutionType
 
 
 def capitalize_first_letter(string: str) -> str:

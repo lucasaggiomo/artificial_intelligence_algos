@@ -8,8 +8,8 @@ from test.games.pokemonBattle.pokemonPackage.pokemonAction import PokemonAction
 from test.games.pokemonBattle.pokemonPackage.pokemonState import PokemonState
 from typing import Callable, Optional
 
-from ai.environment import Environment
-from ai.tasks.game import Game
+from ai.core.environment import Environment
+from ai.games.game import Game
 
 
 class PokemonEnvironment(Environment):

@@ -3,11 +3,11 @@ import textwrap
 import threading as th
 from typing import Callable, Optional
 
-from ai.action import Action
-from ai.player import Player
-from ai.state import State
-from ai.tasks.game import Game
-from ai.taskSolvers.taskSolver import TaskSolver
+from ai.core.action import Action
+from ai.core.state import State
+from ai.core.taskSolver import TaskSolver
+from ai.games.game import Game
+from ai.games.player import Player
 
 type DecisionAlgorithmType = Callable[[Game, Player, set[State], float], Optional[Action]]
 

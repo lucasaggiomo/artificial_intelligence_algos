@@ -3,10 +3,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from ai.action import Action
-from ai.agent import Agent
-from ai.environment import Environment
-from ai.state import State
+from ai.core.action import Action
+from ai.core.agent import Agent
+from ai.core.environment import Environment
+from ai.core.state import State
 
 
 class Task(ABC):

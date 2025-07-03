@@ -3,9 +3,9 @@
 Alcuni algoritmi del corso di Elementi di Intelligenza Artificiale, basati sul libro **Artificial Intelligence - A Modern Approach (Stuart J. Russell, Peter Norvig)**.
 
 ## Struttura repository
-La cartella (package) [src](./src) contiene i package e i moduli in cui sono implementati gli algoritmi. In particolare contiene il package [agentPackage](./src/agentPackage/) in cui sono presenti:
-- l'implementazione di alcuni algoritmi di ricerca nella classe [ProblemSolving](./src/agentPackage/taskSolvers/problemSolving.py)
-- l'implementazione di alcuni algoritmi legati alla Teoria dei Giochi nella classe [GameTheory](./src/agentPackage/taskSolvers/gameTheory.py).
+La cartella (package) [src](./src) contiene i package e i moduli in cui sono implementati gli algoritmi. In particolare contiene il package [ai](./src/ai/) in cui sono presenti:
+- l'implementazione di alcuni algoritmi di ricerca nella classe [ProblemSolving](./src/ai/search/problemSolving.py)
+- l'implementazione di alcuni algoritmi legati alla Teoria dei Giochi nella classe [GameTheory](./src/ai/games/gameTheory.py).
 - una serie di classi astratte che possono essere implementate per realizzare i *problemi*/*giochi* desiderati, sulla base degli algoritmi implementati citati in precedenza.
 
 La cartella (package) [test](./src/test) contiene alcune implementazioni basilari di problemi e giochi.

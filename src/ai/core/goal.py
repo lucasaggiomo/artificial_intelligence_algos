@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ai.state import State
+from ai.core.state import State
 
 
 class Goal(ABC):

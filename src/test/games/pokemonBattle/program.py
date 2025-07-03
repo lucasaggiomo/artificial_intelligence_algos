@@ -15,7 +15,7 @@ from test.games.pokemonBattle.pokemonPackage.pokemonUI import BattleGUI
 from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
 from test.games.pokemonBattle.pokemonPackage.tipo import Tipo
 
-from ai.taskSolvers.gameTheory import GameTheory
+from ai.games.gameTheory import GameTheory
 
 
 def creaGame() -> PokemonGame:

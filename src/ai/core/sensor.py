@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from ai.environment import Environment
-from ai.state import State
+from ai.core.environment import Environment
+from ai.core.state import State
 
 
 class Perception(State):

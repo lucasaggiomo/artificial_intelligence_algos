@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from ai.action import Action
-from ai.agent import Agent
-from ai.environment import Environment
-from ai.goal import Goal
-from ai.state import State
-from ai.tasks.task import Task
+from ai.core.action import Action
+from ai.core.agent import Agent
+from ai.core.environment import Environment
+from ai.core.goal import Goal
+from ai.core.state import State
+from ai.core.task import Task
 
 
 class Problem(Task, ABC):

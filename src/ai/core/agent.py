@@ -1,6 +1,6 @@
-from ai.action import Action
-from ai.environment import Environment
-from ai.sensor import Perception, Sensor
+from ai.core.action import Action
+from ai.core.environment import Environment
+from ai.core.sensor import Perception, Sensor
 
 
 class Agent:

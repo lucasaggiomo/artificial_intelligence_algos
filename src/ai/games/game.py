@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from ai.environment import Environment
-from ai.player import Player
-from ai.state import State
-from ai.tasks.task import Task
+from ai.core.environment import Environment
+from ai.core.state import State
+from ai.core.task import Task
+from ai.games.player import Player
 
 
 class Game(Task, ABC):

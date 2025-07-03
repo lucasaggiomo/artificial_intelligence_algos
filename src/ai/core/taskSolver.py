@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ai.tasks.task import Task
+from ai.core.task import Task
 
 
 # useless for now

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from ai.action import Action
-from ai.agent import Agent
-from ai.environment import Environment
-from ai.goal import Goal
-from ai.sensor import StateSensor
-from ai.state import State
-from ai.tasks.problem import Problem
-from ai.taskSolvers.problemSolving import ProblemSolving
+from ai.core.action import Action
+from ai.core.agent import Agent
+from ai.core.environment import Environment
+from ai.core.goal import Goal
+from ai.core.sensor import StateSensor
+from ai.core.state import State
+from ai.search.problem import Problem
+from ai.search.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):
