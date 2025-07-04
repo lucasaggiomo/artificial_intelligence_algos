@@ -18,7 +18,7 @@ def getFromArgvOrDefault(index: int, default) -> int:
 
 def main():
     DIMENSION = getFromArgvOrDefault(1, 3)
-    REQUIRED = getFromArgvOrDefault(2, 3)
+    REQUIRED = getFromArgvOrDefault(2, 3) # numero di simboli in fila per vincere
 
     initialState = generateInitialState(DIMENSION)
     environment = TicTacToeEnvironment(initialState)

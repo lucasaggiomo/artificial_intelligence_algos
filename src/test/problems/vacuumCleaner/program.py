@@ -8,11 +8,7 @@ from test.problems.vacuumCleaner.vacuumCleaner import (
 from test.problems.vacuumCleaner.vacuumCleaner import VacuumState as vs
 from threading import Event, Thread
 
-from agentPackage.taskSolvers.problemSolving import (
-    ProblemSolving,
-    SearchAlgorithmType,
-    SolutionType,
-)
+from ai.problems.problemSolving import ProblemSolving, SearchAlgorithmType, SolutionType
 
 
 # Funzione per eseguire l'algoritmo di ricerca con un limite di tempo

@@ -12,11 +12,7 @@ from test.problems.nPuzzle.nPuzzle import (
 from threading import Event, Thread
 from typing import Optional
 
-from agentPackage.taskSolvers.problemSolving import (
-    ProblemSolving,
-    SearchAlgorithmType,
-    SolutionType,
-)
+from ai.problems.problemSolving import ProblemSolving, SearchAlgorithmType, SolutionType
 
 
 def capitalize_first_letter(string: str) -> str:

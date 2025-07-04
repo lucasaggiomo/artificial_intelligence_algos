@@ -3,9 +3,9 @@
 Alcuni algoritmi del corso di Elementi di Intelligenza Artificiale, basati sul libro **Artificial Intelligence - A Modern Approach (Stuart J. Russell, Peter Norvig)**.
 
 ## Struttura repository
-La cartella (package) [src](./src) contiene i package e i moduli in cui sono implementati gli algoritmi. In particolare contiene il package [agentPackage](./src/agentPackage/) in cui sono presenti:
-- l'implementazione di alcuni algoritmi di ricerca nella classe [ProblemSolving](./src/agentPackage/taskSolvers/problemSolving.py)
-- l'implementazione di alcuni algoritmi legati alla Teoria dei Giochi nella classe [GameTheory](./src/agentPackage/taskSolvers/gameTheory.py).
+La cartella (package) [src](./src) contiene i package e i moduli in cui sono implementati gli algoritmi. In particolare contiene il package [ai](./src/ai/) in cui sono presenti:
+- l'implementazione di alcuni algoritmi di ricerca nella classe [ProblemSolving](./src/ai/search/problemSolving.py)
+- l'implementazione di alcuni algoritmi legati alla Teoria dei Giochi nella classe [GameTheory](./src/ai/games/gameTheory.py).
 - una serie di classi astratte che possono essere implementate per realizzare i *problemi*/*giochi* desiderati, sulla base degli algoritmi implementati citati in precedenza.
 
 La cartella (package) [test](./src/test) contiene alcune implementazioni basilari di problemi e giochi.
@@ -26,7 +26,7 @@ In particolare, è possibile eseguire, **a partire dalla cartella [src](./src)**
     dove NOME_GIOCO è il nome del gioco (es: pokemonBattle, ticTacToe)
 
 ### PokemonBattle
-Nel caso del gioco della battaglia pokemon, è possibile istanziare le mosse e i pokemon desiderati, con l'unica accortezza di dover aggiungere le rispettive immagini per i pokemon nella cartella [img](./src/test/games/pokemonBattle/img).
+Nel caso del gioco della battaglia pokemon, è possibile personalizzare le mosse e i pokemon, con l'unica accortezza di dover aggiungere le rispettive immagini per i pokemon nella cartella [img](./src/test/games/pokemonBattle/img).
 
 Per ogni pokemon inserito vanno aggiunte due immagini in tale cartella:
 - [NOME_POKEMON]_front.png
@@ -37,3 +37,14 @@ Dove NOME_POKEMON è il nome assegnato al pokemon (attributo *name* della classe
 È possibile creare allenatori umani con la classe **PokemonPlayerUmano**, oppure allenatori AI con la classe **PokemonPlayerAI**.
 
 Per ora ogni allenatore può possedere un solo pokemon.
+
+Il gioco PokemonBattle richiede l'installazione del pacchetto Tkinter.
+
+L'esecuzione del gioco può essere effettuata con la sintassi mostrata in precedenza, eseguita nella cartella [src](./src):
+    
+```
+    python -m test.games.pokemonBattle.program
+```
+
+### Diagrammi
+Sono presenti alcuni diagrammi UML realizzati con pyreverse nella cartella [docs](./docs).

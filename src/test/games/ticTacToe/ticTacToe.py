@@ -5,15 +5,13 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import cast
 
-from agentPackage.action import Action
-from agentPackage.environment import Environment
-from agentPackage.perception import Perception
-from agentPackage.player import Player
-from agentPackage.playerAI import PlayerAI
-from agentPackage.sensor import Sensor, StateSensor
-from agentPackage.state import State
-from agentPackage.tasks.game import Game
-from agentPackage.taskSolvers.gameTheory import DecisionAlgorithmType, GameTheory
+from ai.core.action import Action
+from ai.core.environment import Environment
+from ai.core.sensor import Perception, Sensor, StateSensor
+from ai.core.state import State
+from ai.games.game import Game
+from ai.games.gameTheory import DecisionAlgorithmType, GameTheory
+from ai.games.player import Player, PlayerAI
 
 
 class Symbol(StrEnum):
@@ -84,8 +82,7 @@ class TicTacToeAction(Action):
 
 
 class TicTacToeEnvironment(Environment):
-    def transitionModel(self, state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
-        return _transitionModel(state, action)
+    pass
 
 
 class TicTacToeGame(Game):

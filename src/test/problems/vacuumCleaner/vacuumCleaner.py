@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from agentPackage.action import Action
-from agentPackage.agent import Agent
-from agentPackage.environment import Environment
-from agentPackage.goal import Goal
-from agentPackage.sensor import StateSensor
-from agentPackage.state import State
-from agentPackage.tasks.problem import Problem
+from ai.core.action import Action
+from ai.core.agent import Agent
+from ai.core.environment import Environment
+from ai.core.sensor import StateSensor
+from ai.core.state import State
+from ai.problems.goal import Goal
+from ai.problems.problem import Problem
 
 
 class VacuumState(State):
@@ -95,8 +95,7 @@ class VacuumGoal(Goal):
 
 
 class VacuumEnvironment(Environment):
-    def transitionModel(self, state: VacuumState, action: VacuumAction) -> VacuumState:
-        return _transitionModel(state, action)
+    pass
 
 
 class VacuumAgent(Agent):

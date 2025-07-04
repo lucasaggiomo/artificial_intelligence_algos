@@ -1,24 +1,21 @@
 import threading as th
-from test.games.pokemonBattle.pokemonPackage.game import PokemonGame
-from test.games.pokemonBattle.pokemonPackage.mosse import (
+from test.games.pokemonBattle.ai_impl.game import PokemonGame
+from test.games.pokemonBattle.ai_impl.players import PokemonPlayerAI, PokemonPlayerUmano
+from test.games.pokemonBattle.core.mosse import (
     CategoriaMossaOffensiva,
     CategoriaMossaStato,
     MossaOffensiva,
     MossaStato,
 )
-from test.games.pokemonBattle.pokemonPackage.players import (
-    PokemonPlayerAI,
-    PokemonPlayerUmano,
-)
-from test.games.pokemonBattle.pokemonPackage.pokemon import Pokemon
-from test.games.pokemonBattle.pokemonPackage.pokemonUI import BattleGUI
-from test.games.pokemonBattle.pokemonPackage.statistiche import Statistica, Statistiche
-from test.games.pokemonBattle.pokemonPackage.tipo import Tipo
+from test.games.pokemonBattle.core.pokemon import Pokemon
+from test.games.pokemonBattle.core.statistiche import Statistica, Statistiche
+from test.games.pokemonBattle.core.tipo import Tipo
+from test.games.pokemonBattle.ui.pokemonUI import BattleGUI
 
-from agentPackage.taskSolvers.gameTheory import GameTheory
+from ai.games.gameTheory import GameTheory
 
 
-def creaGame() -> PokemonGame:
+def creaGame2() -> PokemonGame:
     # mosse
     body_slam = MossaOffensiva(
         "Body Slam",
@@ -107,7 +104,7 @@ def creaGame() -> PokemonGame:
         Statistiche(
             punti_salute=150, attacco=60, difesa=120, attacco_speciale=65, difesa_speciale=130
         ),
-        {body_slam, pistolacqua, skull_bash, difesa_speciale},
+        {body_slam, pistolacqua, skull_bash, prepotenza_speciale},
     )
     charizard = Pokemon(
         "Charizard",
@@ -130,55 +127,116 @@ def creaGame() -> PokemonGame:
     player1 = PokemonPlayerAI(
         "Blastoise's Allenatore",
         blastoise,
-        limit=20,
+        # limit=20,
     )
     player2 = PokemonPlayerAI(
         "Charizard's Allenatore",
         charizard,
         limit=20,
     )
-    player3 = PokemonPlayerUmano(
+    player3 = PokemonPlayerAI(
         "Venusaur's Allenatore",
         venusaur,
-        # limit=20,
+        limit=20,
     )
 
     # battaglia pokemon
     game = PokemonGame(
-        player3,
         player1,
+        player3,
     )
 
     return game
 
 
-def main():
+def creaGame() -> PokemonGame:
+    # mosse
+    foglielama = MossaOffensiva(
+        "Foglielama",
+        Tipo.ERBA,
+        55,
+        CategoriaMossaOffensiva.MOSSA_SPECIALE,
+    )
+    solarraggio = MossaOffensiva(
+        "Solarraggio",
+        Tipo.ERBA,
+        120,
+        CategoriaMossaOffensiva.MOSSA_SPECIALE,
+        cooldown=1,
+    )
+    bruciatutto = MossaOffensiva(
+        "Bruciatutto",
+        Tipo.FUOCO,
+        90,
+        CategoriaMossaOffensiva.MOSSA_SPECIALE,
+    )
+    cuordileone = MossaStato(
+        "Cuordileone",
+        Tipo.NORMALE,
+        categoria=CategoriaMossaStato.MOSSA_BUFF,
+        modificheStatistiche={Statistica.ATTACCO: 10},
+    )
 
+    # pokémon
+    venusaur = Pokemon(
+        "Venusaur",
+        {Tipo.ERBA},
+        Statistiche(
+            punti_salute=135, attacco=75, difesa=90, attacco_speciale=80, difesa_speciale=95
+        ),
+        {foglielama, solarraggio},
+    )
+    charizard = Pokemon(
+        "Charizard",
+        {Tipo.FUOCO},
+        Statistiche(
+            punti_salute=130, attacco=70, difesa=80, attacco_speciale=85, difesa_speciale=80
+        ),
+        {bruciatutto, cuordileone},
+    )
+
+    # allenatori
+    player1 = PokemonPlayerUmano("Allenatore di Venusaur", venusaur)
+    player2 = PokemonPlayerAI("Allenatore di Charizard", charizard)
+
+    # gioco
+    return PokemonGame(player1, player2)
+
+
+def runTkinter(game: PokemonGame, waitTurnEvent: th.Event):
+    app = BattleGUI(game.initialState, waitTurnEvent)
+    game.environment._updateCallback = app.update_callback
+    app.runMainLoop()
+
+
+def solverThreadFunction(game: PokemonGame, waitTurnEvent: th.Event):
+    try:
+        solver = GameTheory(game, waitTurnEvent)
+        solver.startGame()
+    except Exception as e:
+        print(
+            f"Eccezione non gestita nel solver (probabilmente hai chiuso senza terminare la battaglia): {e}"
+        )
+
+
+def main():
+    # crea il game desiderato
     game = creaGame()
 
-    def runTkinter(waitTurnEvent: th.Event):
-        app = BattleGUI(game.initialState, waitTurnEvent)
-        game.setUpdateCallback(app.update_callback)
-        app.runMainLoop()
-
-    def solve():
-        try:
-            solver = GameTheory(game, waitTurnEvent)
-            solver.startGame()
-        except Exception as e:
-            print(
-                f"Eccezione non gestita nel solver (probabilmente hai chiuso senza terminare la battaglia): {e}"
-            )
-
+    # crea l'evento per sincronizzare UI e solver (per il bottone "Avvia turno")
     waitTurnEvent = th.Event()
-    solverThread = th.Thread(name="solverThread", target=solve, args=())
+
+    # esegue il programma principale in un altro thread
+    solverThread = th.Thread(
+        name="solverThread",
+        target=solverThreadFunction,
+        args=(game, waitTurnEvent),
+    )
     solverThread.start()
 
-    # tkThread = th.Thread(name="tkinterThread", target=runTkinter, args=(waitTurnEvent,))
-    # tkThread.start()
-    runTkinter(waitTurnEvent)
+    # esegue la GUI di tkinter (metodo bloccante)
+    runTkinter(game, waitTurnEvent)
 
-    # tkThread.join()
     print("Attendo la terminazione del solver thread...")
     waitTurnEvent.set()
     solverThread.join()

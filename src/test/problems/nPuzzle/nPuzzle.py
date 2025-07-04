@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from agentPackage.action import Action
-from agentPackage.agent import Agent
-from agentPackage.environment import Environment
-from agentPackage.goal import Goal
-from agentPackage.sensor import StateSensor
-from agentPackage.state import State
-from agentPackage.tasks.problem import Problem
-from agentPackage.taskSolvers.problemSolving import ProblemSolving
+from ai.core.action import Action
+from ai.core.agent import Agent
+from ai.core.environment import Environment
+from ai.core.sensor import StateSensor
+from ai.core.state import State
+from ai.problems.goal import Goal
+from ai.problems.problem import Problem
+from ai.problems.problemSolving import ProblemSolving
 
 
 class NPuzzleState(State):
@@ -82,8 +82,7 @@ class NPuzzleAction(Action):
 
 
 class NPuzzleEnvironment(Environment):
-    def transitionModel(self, state: NPuzzleState, action: NPuzzleAction) -> NPuzzleState:
-        return _transitionModel(state, action)
+    pass
 
 
 class NPuzzleGoal(Goal):
