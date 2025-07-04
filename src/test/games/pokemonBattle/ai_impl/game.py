@@ -55,9 +55,6 @@ class PokemonGame(Game):
         super().__init__(self.initialState, self.environment, [player1, player2])
 
     def terminalTest(self, state: PokemonState) -> bool:
-        # pokemon1Ko = state.pokemon1.isKO()
-        # pokemon2Ko = state.pokemon2.isKO()
-        # print(">>>Verifico se qualcuno ha vinto...", pokemon1Ko, pokemon2Ko)
         return state.pokemon1.isKO() or state.pokemon2.isKO()
 
     def getActionsFromState(self, state: PokemonState) -> list[PokemonAction]:

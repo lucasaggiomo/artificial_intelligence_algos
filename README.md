@@ -26,7 +26,7 @@ In particolare, è possibile eseguire, **a partire dalla cartella [src](./src)**
     dove NOME_GIOCO è il nome del gioco (es: pokemonBattle, ticTacToe)
 
 ### PokemonBattle
-Nel caso del gioco della battaglia pokemon, è possibile istanziare le mosse e i pokemon desiderati, con l'unica accortezza di dover aggiungere le rispettive immagini per i pokemon nella cartella [img](./src/test/games/pokemonBattle/img).
+Nel caso del gioco della battaglia pokemon, è possibile personalizzare le mosse e i pokemon, con l'unica accortezza di dover aggiungere le rispettive immagini per i pokemon nella cartella [img](./src/test/games/pokemonBattle/img).
 
 Per ogni pokemon inserito vanno aggiunte due immagini in tale cartella:
 - [NOME_POKEMON]_front.png
@@ -37,3 +37,14 @@ Dove NOME_POKEMON è il nome assegnato al pokemon (attributo *name* della classe
 È possibile creare allenatori umani con la classe **PokemonPlayerUmano**, oppure allenatori AI con la classe **PokemonPlayerAI**.
 
 Per ora ogni allenatore può possedere un solo pokemon.
+
+Il gioco PokemonBattle richiede l'installazione del pacchetto Tkinter.
+
+L'esecuzione del gioco può essere effettuata con la sintassi mostrata in precedenza, eseguita nella cartella [src](./src):
+    
+```
+    python -m test.games.pokemonBattle.program
+```
+
+### Diagrammi
+Sono presenti alcuni diagrammi UML realizzati con pyreverse nella cartella [docs](./docs).

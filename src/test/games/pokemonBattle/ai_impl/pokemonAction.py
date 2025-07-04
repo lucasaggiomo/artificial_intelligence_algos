@@ -46,7 +46,7 @@ class PokemonAction(Action):
             self.danno = 0
             return 0
 
-        stringa = f"Calcolo del danno con pokemon:\n{self.pokemon}\nverso\n{self.target}\ncon la mossa {self.mossa}"
+        # stringa = f"Calcolo del danno con pokemon:\n{self.pokemon}\nverso\n{self.target}\ncon la mossa {self.mossa}"
         # print(textwrap.indent(stringa, "\t----"))
 
         self.danno = (

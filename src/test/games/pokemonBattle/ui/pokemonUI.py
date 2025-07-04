@@ -192,7 +192,7 @@ class MainFrame(tk.Frame):
         self.avvia_turno_button = tk.Button(
             self, text="Avvia turno", command=self.waitTurnEvent.set
         )
-        self.avvia_turno_button.pack(side=tk.BOTTOM, anchor="e", padx=5, pady=5)
+        self.avvia_turno_button.pack(side=tk.BOTTOM, anchor="center", padx=10, pady=10, expand=True, fill="both")
 
         self.update_bars()
 
@@ -305,6 +305,6 @@ class BattleGUI:
         return self.mainFrame.update_callback(oldState, action, newState)
 
     def on_closing(self):
-        print("DISTRUGGO...")
+        # print("DISTRUGGO...")
         # self.mainFrame.on_move_selected(None, None)
         self.root.destroy()  # dealloca e chiude correttamente

@@ -34,7 +34,6 @@ class PokemonPlayer(Allenatore, Player):
         self.numero: int = 0
 
     def getUtility(self, state: PokemonState) -> float:
-
         if self.numero == 1:
             mio_pokemon = state.pokemon1
             avversario = state.pokemon2
@@ -46,8 +45,7 @@ class PokemonPlayer(Allenatore, Player):
         ps_mio = mio_pokemon.statistiche[Statistica.PUNTI_SALUTE]
         ps_avversario = avversario.statistiche[Statistica.PUNTI_SALUTE]
 
-        # penalizza il punteggio all'avanzare dei turni,
-        # prediligendo una vittoria più rapida
+        # penalizza il punteggio all'avanzare dei turni
         decay = 0.999**state.turno
 
         utility = 0.0
@@ -64,10 +62,6 @@ class PokemonPlayer(Allenatore, Player):
             total_ps = ps_mio + ps_avversario
 
             utility = (ps_mio - ps_avversario) / total_ps
-
-            # print("Utility finale: " + str(utility))
-            # global stampatoUtility
-            # stampatoUtility = True
 
         utility *= decay
         return round(utility, NUM_DIGITS)
