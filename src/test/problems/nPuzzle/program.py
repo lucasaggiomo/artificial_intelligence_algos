@@ -37,10 +37,12 @@ def runWithTimeout(
 
     stopEvent = Event()
 
+    ProblemSolving.stopEvent = stopEvent
+
     def search():
         nonlocal solution
         try:
-            solution = searchAlgorithm(problem, stopEvent)
+            solution = searchAlgorithm(problem)
         except Exception as e:
             log(f"Algorithm {name} did not succeed: {e}")
 
